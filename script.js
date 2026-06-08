@@ -2,8 +2,12 @@ const DOT_WIDTH = 60;
 const DOT_HEIGHT = 40;
 
 const GAME_STATES = {
+  TITLE: 'TITLE',
   INTRO: 'INTRO',
   GREETING: 'GREETING',
+  HARDWARE_GUIDE: 'HARDWARE_GUIDE',
+  TUTORIAL_PANNING: 'TUTORIAL_PANNING',
+  TUTORIAL_FUNCTION_KEYS: 'TUTORIAL_FUNCTION_KEYS',
   FIRST_MISSION: 'FIRST_MISSION',
   MISSION_COMPLETE: 'MISSION_COMPLETE',
   FREE_PLAY: 'FREE_PLAY'
@@ -43,11 +47,13 @@ const PLACES = [
   { id: 'river', name: '강가', braille: '강가입니다', speech: '물결형 점선으로 표현된 강입니다.', hint: '강은 바로 건널 수 없고 다리를 이용해야 합니다.' }
 ];
 
-let gameState = GAME_STATES.INTRO;
-let introStep = 0;
+let gameState = GAME_STATES.TITLE;
+let introStep = -1;
 let placeIndex = 0;
 let missionComplete = false;
 let dotCells = [];
+let soundEnabled = false;
+let audioContext = null;
 
 const dotGrid = document.getElementById('dotGrid');
 const brailleMessage = document.getElementById('brailleMessage');
@@ -59,22 +65,35 @@ const stateLabel = document.getElementById('stateLabel');
 const placeLabel = document.getElementById('placeLabel');
 const screenMode = document.getElementById('screenMode');
 const screenHint = document.getElementById('screenHint');
+const stageBanner = document.getElementById('stageBanner');
 const logList = document.getElementById('logList');
+const soundToggle = document.getElementById('soundToggle');
+const dotPadStatus = document.getElementById('dotPadStatus');
 
 function init() {
   buildDotGrid();
   bindEvents();
+  if (window.DotPadBridge) {
+    window.DotPadBridge.connect().then((result) => {
+      dotPadStatus.textContent = result.connected ? '하드웨어 연결' : '시뮬레이션 모드';
+    });
+  }
+  showTitle();
+}
+
+function showTitle() {
   setScene({
-    state: GAME_STATES.INTRO,
-    matrix: createIntroMatrix(0),
-    speech: '첫 번째 점이 깨어났어요. 기능키 2로 다음 장면을 열어볼까요?',
-    braille: '점이 켜졌어요\n마을이 시작돼요',
-    mission: '오프닝을 따라 마을이 깨어나는 모습을 확인해요.',
-    place: '첫 번째 점',
-    banner: 'MISSION START',
+    state: GAME_STATES.TITLE,
+    matrix: createTitleMatrix(),
+    speech: 'DOT VILLAGE ARCADE. 기능키 2를 누르면 게임이 시작됩니다.',
+    braille: 'PRESS 기능키2\nTO START',
+    mission: '8비트 촉각 마을 게임이 곧 시작됩니다.',
+    place: '타이틀 화면',
+    banner: 'TITLE SCREEN',
+    stage: 'PRESS 기능키 2 TO START',
     hint: 'PRESS 기능키 2 TO START'
   });
-  addLog('오프닝 시작: 첫 번째 점이 켜졌어요.');
+  addLog('타이틀 화면: 기능키 2로 시작하세요.');
 }
 
 function buildDotGrid() {
@@ -95,24 +114,27 @@ function bindEvents() {
   document.querySelectorAll('[data-action]').forEach((button) => {
     button.addEventListener('click', () => handleDotPadAction(button.dataset.action));
   });
-
   window.addEventListener('keydown', (event) => {
     const action = keyboardToDotPadAction[event.key];
     if (!action) return;
     event.preventDefault();
     handleDotPadAction(action);
   });
+  soundToggle.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundToggle.textContent = soundEnabled ? '효과음 ON' : '효과음 OFF';
+    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+    playSound('select');
+  });
 }
 
 function handleDotPadAction(action) {
-  if (action === ACTIONS.SKIP_INTRO) {
-    startMission();
-    return;
-  }
+  playSound(action === ACTIONS.INTERACT_OR_NEXT ? 'select' : 'move');
 
-  if (gameState === GAME_STATES.INTRO || gameState === GAME_STATES.GREETING) {
-    handleIntroAction(action);
-    return;
+  if (action === ACTIONS.SKIP_INTRO) return startMission();
+
+  if ([GAME_STATES.TITLE, GAME_STATES.INTRO, GAME_STATES.GREETING, GAME_STATES.HARDWARE_GUIDE, GAME_STATES.TUTORIAL_PANNING, GAME_STATES.TUTORIAL_FUNCTION_KEYS].includes(gameState)) {
+    return handleStoryAction(action);
   }
 
   if (action === ACTIONS.PREVIOUS) return moveFocus(-1);
@@ -124,69 +146,101 @@ function handleDotPadAction(action) {
   if (action === ACTIONS.HELP_OR_MENU) return readHelp();
 }
 
-function handleIntroAction(action) {
+function handleStoryAction(action) {
   if (action === ACTIONS.HELP_OR_MENU) return readHelp();
 
+  if (gameState === GAME_STATES.TUTORIAL_PANNING && (action === ACTIONS.PREVIOUS || action === ACTIONS.NEXT)) {
+    return showTutorialFunctionKeys();
+  }
+
   if (action !== ACTIONS.INTERACT_OR_NEXT && action !== ACTIONS.NEXT) {
-    announce('루미', '오프닝 중에는 기능키 2로 다음 장면을 진행할 수 있어요.', '기능키 2로\n다음 진행');
+    announce('루미', '지금은 기능키 2로 다음 장면을 진행할 수 있어요.', '기능키 2로\n다음 진행');
     return;
   }
 
-  introStep += 1;
+  if (gameState === GAME_STATES.TITLE) return showIntroStep(0);
+  if (gameState === GAME_STATES.INTRO) return showIntroStep(introStep + 1);
+  if (gameState === GAME_STATES.GREETING) return showHardwareGuide();
+  if (gameState === GAME_STATES.HARDWARE_GUIDE) return showTutorialPanning();
+  if (gameState === GAME_STATES.TUTORIAL_PANNING) return showTutorialFunctionKeys();
+  if (gameState === GAME_STATES.TUTORIAL_FUNCTION_KEYS) return startMission();
+}
 
-  if (introStep === 1) {
-    setScene({
-      state: GAME_STATES.INTRO,
-      matrix: createIntroMatrix(1),
-      speech: '작은 길이 생기고, 마을의 불빛이 하나씩 켜집니다.',
-      braille: '작은 길 등장\n불빛이 켜짐',
-      mission: '기능키 2를 눌러 마을을 조금 더 열어보세요.',
-      place: '작은 길',
-      banner: 'DOT LOADING',
-      hint: '기능키 2로 계속'
-    });
-    addLog('작은 점선 길이 나타났어요.');
-  } else if (introStep === 2) {
-    setScene({
-      state: GAME_STATES.INTRO,
-      matrix: createIntroMatrix(2),
-      speech: '집과 나무가 나타났어요. 닷 빌리지의 모습이 보이기 시작합니다.',
-      braille: '집과 나무 등장\n마을이 보여요',
-      mission: '마을의 기본 구조가 생기고 있어요.',
-      place: '집과 나무',
-      banner: 'DOT LOADING',
-      hint: '기능키 2로 계속'
-    });
-    addLog('집과 나무가 나타났어요.');
-  } else if (introStep === 3) {
-    setScene({
-      state: GAME_STATES.INTRO,
-      matrix: createIntroMatrix(3),
-      speech: '강과 다리가 나타났어요. 손끝으로 건널 수 있는 길을 찾아보세요.',
-      braille: '강과 다리 등장\n길을 찾아요',
-      mission: '강은 바로 건널 수 없고, 다리를 통해 이동합니다.',
-      place: '강과 다리',
-      banner: 'DOT LOADING',
-      hint: '기능키 2로 계속'
-    });
-    addLog('강과 다리가 나타났어요.');
-  } else if (introStep === 4) {
+function showIntroStep(step) {
+  introStep = step;
+  const scenes = [
+    ['첫 번째 점이 깨어났어요. 작은 촉각 마을이 시작됩니다.', '점이 켜졌어요\n마을이 시작', '첫 번째 점', 'DOT LOADING', '첫 번째 점이 깨어났어요.'],
+    ['작은 길이 생기고, 마을의 불빛이 하나씩 켜집니다.', '작은 길 등장\n불빛이 켜짐', '작은 길', 'DOT LOADING', '작은 길이 나타났어요.'],
+    ['집과 나무가 나타났어요. 닷 빌리지의 모습이 보이기 시작합니다.', '집과 나무 등장\n마을이 보여요', '집과 나무', 'DOT LOADING', '집과 나무가 나타났어요.'],
+    ['강과 다리가 나타났어요. 손끝으로 건널 수 있는 길을 찾아보세요.', '강과 다리 등장\n길을 찾아요', '강과 다리', 'DOT LOADING', '강과 다리가 나타났어요.'],
+    ['안녕! 나는 루미야. 닷 빌리지에 온 걸 환영해. 기능키 2로 하드웨어 조작을 배워보자!', '루미: 안녕!\n함께 탐험해요', '루미 등장', 'LUMI APPEARS', '루미가 깜빡이며 등장했어요.']
+  ];
+
+  if (step >= scenes.length - 1) {
     gameState = GAME_STATES.GREETING;
-    setScene({
-      state: GAME_STATES.GREETING,
-      matrix: createIntroMatrix(4),
-      speech: '안녕! 나는 루미야. 닷 빌리지에 온 걸 환영해. 기능키 2로 첫 미션을 시작해줘!',
-      braille: '루미: 안녕!\n함께 탐험해요',
-      mission: '루미가 당신을 기다리고 있어요.',
-      place: '루미 등장',
-      banner: 'LUMI APPEARS',
-      hint: 'PRESS 기능키 2'
-    });
-    addLog('루미가 등장했어요.');
-    speak('안녕! 나는 루미야. 닷 빌리지에 온 걸 환영해.');
   } else {
-    startMission();
+    gameState = GAME_STATES.INTRO;
   }
+
+  const scene = scenes[step] || scenes[scenes.length - 1];
+  setScene({
+    state: gameState,
+    matrix: createIntroMatrix(step),
+    speech: scene[0],
+    braille: scene[1],
+    mission: '기능키 2를 눌러 8비트 촉각 마을을 열어보세요.',
+    place: scene[2],
+    banner: scene[3],
+    stage: step >= 4 ? 'LUMI APPEARS!' : 'DOT LOADING...',
+    hint: '기능키 2로 계속'
+  });
+  addLog(scene[4]);
+  if (step >= 4) speak('안녕! 나는 루미야. 닷 빌리지에 온 걸 환영해.');
+}
+
+function showHardwareGuide() {
+  setScene({
+    state: GAME_STATES.HARDWARE_GUIDE,
+    matrix: createHardwareGuideMatrix(),
+    speech: '이 게임은 십자키가 아니라 실제 닷 패드처럼 좌측 이동키, 기능키 1부터 5, 우측 이동키로 플레이해요.',
+    braille: '좌/기능키/우\n구조를 익혀요',
+    mission: '실제 Dot Pad 구조를 먼저 익혀요. 좌측 삼각키, 기능키 1~5, 우측 삼각키를 사용합니다.',
+    place: '하드웨어 안내',
+    banner: 'HARDWARE GUIDE',
+    stage: 'HARDWARE GUIDE',
+    hint: '기능키 2로 다음'
+  });
+  addLog('하드웨어 안내: 좌측 이동키, 기능키 1~5, 우측 이동키 구조를 소개합니다.');
+}
+
+function showTutorialPanning() {
+  setScene({
+    state: GAME_STATES.TUTORIAL_PANNING,
+    matrix: createPanningTutorialMatrix(),
+    speech: '좌측 이동키는 이전 장소, 우측 이동키는 다음 장소입니다. 좌우 이동키 중 하나를 눌러보세요.',
+    braille: '좌/우 이동키\n눌러보세요',
+    mission: '튜토리얼: 좌측/우측 이동키로 장소 포커스를 이동합니다.',
+    place: '패닝키 튜토리얼',
+    banner: 'TUTORIAL 01',
+    stage: 'TRY LEFT OR RIGHT KEY',
+    hint: '좌/우 이동키를 눌러보기'
+  });
+  addLog('튜토리얼 01: 좌/우 이동키를 눌러 장소를 이동하는 방법을 익힙니다.');
+}
+
+function showTutorialFunctionKeys() {
+  setScene({
+    state: GAME_STATES.TUTORIAL_FUNCTION_KEYS,
+    matrix: createFunctionKeyTutorialMatrix(),
+    speech: '좋아요! 기능키 1은 현재 위치, 2는 선택과 인사, 3은 미션, 4는 주변 설명, 5는 도움말입니다.',
+    braille: '기능키 1-5\n역할을 익혀요',
+    mission: '튜토리얼: 기능키 1~5 역할을 확인합니다. 기능키 2를 누르면 첫 미션이 시작됩니다.',
+    place: '기능키 튜토리얼',
+    banner: 'TUTORIAL 02',
+    stage: 'PRESS 기능키 2 FOR MISSION',
+    hint: '기능키 2로 미션 시작'
+  });
+  addLog('튜토리얼 02: 기능키 1~5 역할 안내를 완료했습니다.');
 }
 
 function startMission() {
@@ -194,10 +248,13 @@ function startMission() {
   introStep = 99;
   placeIndex = 0;
   missionComplete = false;
+  document.querySelector('.app').dataset.state = 'first_mission';
   document.body.classList.remove('mission-clear');
+  stageBanner.textContent = 'MISSION START!';
   renderPlace();
   addLog('MISSION 01 시작: 좌우 이동키로 루미를 찾고 기능키 2로 인사하세요.');
   speak('미션 01. 루미와 첫 인사. 좌우 이동키로 루미를 찾고 기능키 2로 인사하세요.');
+  playSound('start');
 }
 
 function moveFocus(delta) {
@@ -214,7 +271,6 @@ function moveFocus(delta) {
 function renderPlace() {
   const place = PLACES[placeIndex];
   const isLumi = place.id === 'lumi';
-
   setScene({
     state: gameState,
     matrix: createVillageMatrix(place.id),
@@ -223,6 +279,7 @@ function renderPlace() {
     mission: missionComplete ? '자유 탐색 모드입니다. 좌우 이동키로 마을을 둘러보세요.' : '좌/우 이동키로 루미를 찾고 기능키 2로 인사하세요.',
     place: place.name,
     banner: missionComplete ? 'FREE PLAY' : 'MISSION 01',
+    stage: isLumi ? 'PRESS 기능키 2 TO SAY HELLO' : '',
     hint: isLumi ? 'PRESS 기능키 2 TO SAY HELLO' : '좌/우 이동키로 탐색'
   });
   addLog(`현재 장소: ${place.name}. ${place.hint}`);
@@ -241,10 +298,12 @@ function interact() {
       mission: 'MISSION CLEAR! 루미와 첫 인사를 나눴어요.',
       place: '루미',
       banner: 'MISSION CLEAR!',
+      stage: 'MISSION CLEAR!',
       hint: '기능키 2로 자유 탐색'
     });
     addLog('MISSION CLEAR: 루미와 첫 인사를 나눴어요.');
     speak('미션 완료. 루미와 첫 인사를 나눴어요.');
+    playSound('clear');
     return;
   }
 
@@ -256,29 +315,22 @@ function interact() {
   }
 
   const place = PLACES[placeIndex];
-  if (place.id === 'tree') {
-    announce('사과나무', '톡톡! 사과나무를 만졌어요. 다음 버전에서는 사과를 얻을 수 있어요.', '사과나무 터치\n다음버전 수확');
-  } else if (place.id === 'home') {
-    announce('내 집', '내 집입니다. 오늘의 모험을 시작한 장소예요.', '내 집입니다\n시작 장소');
-  } else if (place.id === 'flower') {
-    announce('꽃밭', '작은 꽃밭입니다. 다음 미션에서는 물을 줄 수 있어요.', '꽃밭입니다\n다음미션 예정');
-  } else {
-    announce(place.name, '지금은 상호작용할 수 없어요. 좌우 이동키로 다른 장소를 찾아보세요.', '상호작용 없음\n좌우로 이동');
-  }
+  if (place.id === 'tree') announce('사과나무', '톡톡! 사과나무를 만졌어요. 다음 버전에서는 사과를 얻을 수 있어요.', '사과나무 터치\n다음버전 수확');
+  else if (place.id === 'home') announce('내 집', '내 집입니다. 오늘의 모험을 시작한 장소예요.', '내 집입니다\n시작 장소');
+  else if (place.id === 'flower') announce('꽃밭', '작은 꽃밭입니다. 다음 미션에서는 물을 줄 수 있어요.', '꽃밭입니다\n다음미션 예정');
+  else announce(place.name, '지금은 상호작용할 수 없어요. 좌우 이동키로 다른 장소를 찾아보세요.', '상호작용 없음\n좌우로 이동');
 }
 
 function readCurrent() {
   const place = PLACES[placeIndex] || { name: '오프닝', speech: '마을이 시작되고 있습니다.', braille: '오프닝' };
   announce('현재 위치', `${place.name}. ${place.speech}`, `${place.braille}\n기능키1 안내`);
 }
-
 function readMission() {
   const text = missionComplete ? '미션 완료. 이제 자유 탐색을 할 수 있어요.' : '미션 01. 루미와 첫 인사. 좌우 이동키로 루미를 찾고 기능키 2로 인사하세요.';
   announce('미션', text, missionComplete ? '미션 완료\n자유 탐색' : '미션: 루미찾기\n기능키2 인사');
 }
-
 function readAround() {
-  if (gameState === GAME_STATES.INTRO || gameState === GAME_STATES.GREETING) {
+  if ([GAME_STATES.TITLE, GAME_STATES.INTRO, GAME_STATES.GREETING, GAME_STATES.HARDWARE_GUIDE, GAME_STATES.TUTORIAL_PANNING, GAME_STATES.TUTORIAL_FUNCTION_KEYS].includes(gameState)) {
     announce('주변 설명', '점들이 켜지며 작은 마을이 만들어지고 있어요.', '마을 생성중\n기능키2 계속');
     return;
   }
@@ -286,19 +338,16 @@ function readAround() {
   const next = PLACES[placeIndex + 1]?.name || '오른쪽 끝';
   announce('주변 설명', `왼쪽에는 ${prev}, 오른쪽에는 ${next}이 있습니다.`, `왼쪽:${prev}\n오른쪽:${next}`);
 }
-
 function readHelp() {
-  announce('도움말', '좌측 삼각 이동키는 이전 장소, 우측 삼각 이동키는 다음 장소입니다. 기능키 2는 선택 또는 인사입니다.', '좌/우 이동\n기능키2 선택');
+  announce('도움말', '좌측 삼각 이동키는 이전 장소, 우측 삼각 이동키는 다음 장소입니다. 기능키 1은 현재 위치, 2는 선택, 3은 미션, 4는 주변 설명, 5는 도움말입니다.', '좌/우 이동\n기능키1-5');
 }
-
 function announce(title, speech, braille) {
   lumiSpeech.textContent = `${title}: ${speech}`;
   brailleMessage.innerHTML = braille.replace(/\n/g, '<br>');
   addLog(`${title}: ${speech}`);
   speak(speech);
 }
-
-function setScene({ state, matrix, speech, braille, mission, place, banner, hint }) {
+function setScene({ state, matrix, speech, braille, mission, place, banner, stage, hint }) {
   gameState = state;
   renderMatrix(matrix);
   sendToDotPad(matrix);
@@ -306,6 +355,7 @@ function setScene({ state, matrix, speech, braille, mission, place, banner, hint
   brailleMessage.innerHTML = braille.replace(/\n/g, '<br>');
   missionText.textContent = mission;
   missionBanner.textContent = banner;
+  stageBanner.textContent = stage || '';
   pressHint.textContent = hint;
   stateLabel.textContent = state;
   placeLabel.textContent = place;
@@ -313,14 +363,12 @@ function setScene({ state, matrix, speech, braille, mission, place, banner, hint
   screenHint.textContent = hint;
   document.querySelector('.app').dataset.state = state.toLowerCase();
 }
-
 function addLog(message) {
   const item = document.createElement('li');
   item.textContent = message;
   logList.prepend(item);
   while (logList.children.length > 8) logList.removeChild(logList.lastElementChild);
 }
-
 function renderMatrix(matrix) {
   for (let y = 0; y < DOT_HEIGHT; y += 1) {
     for (let x = 0; x < DOT_WIDTH; x += 1) {
@@ -334,39 +382,48 @@ function renderMatrix(matrix) {
     }
   }
 }
-
-function blankMatrix() {
-  return Array.from({ length: DOT_HEIGHT }, () => Array(DOT_WIDTH).fill(0));
+function blankMatrix() { return Array.from({ length: DOT_HEIGHT }, () => Array(DOT_WIDTH).fill(0)); }
+function createTitleMatrix() {
+  const m = blankMatrix();
+  line(m, 10, 20, 50, 20, 1, true);
+  drawHouse(m, 9, 9, 1);
+  drawTree(m, 22, 10, 1);
+  drawLumi(m, 38, 14, 4);
+  textDots(m, 21, 29, 2);
+  return m;
 }
-
 function createIntroMatrix(step) {
   const m = blankMatrix();
   if (step >= 0) point(m, 30, 20, 2);
-  if (step >= 1) {
-    line(m, 8, 22, 52, 22, 1, true);
-    line(m, 16, 18, 44, 18, 1, true);
-  }
-  if (step >= 2) {
-    drawHouse(m, 8, 9, 1);
-    drawTree(m, 23, 9, 1);
-    drawTree(m, 42, 10, 1);
-    drawFlowers(m, 14, 29, 1);
-  }
-  if (step >= 3) {
-    drawRiver(m, 48, 4, 34, 1);
-    drawBridge(m, 44, 22, 2);
-  }
-  if (step >= 4) {
-    drawLumi(m, 30, 17, 4);
-    rect(m, 27, 14, 8, 10, 2);
-  }
+  if (step >= 1) { line(m, 8, 22, 52, 22, 1, true); line(m, 16, 18, 44, 18, 1, true); }
+  if (step >= 2) { drawHouse(m, 8, 9, 1); drawTree(m, 23, 9, 1); drawTree(m, 42, 10, 1); drawFlowers(m, 14, 29, 1); }
+  if (step >= 3) { drawRiver(m, 48, 4, 34, 1); drawBridge(m, 44, 22, 2); }
+  if (step >= 4) { drawLumi(m, 30, 17, 4); rect(m, 27, 14, 8, 10, 2); }
   return m;
 }
-
+function createHardwareGuideMatrix() {
+  const m = createIntroMatrix(4);
+  line(m, 8, 34, 14, 34, 3); line(m, 46, 34, 52, 34, 3);
+  for (let i = 0; i < 5; i += 1) rect(m, 20 + i * 4, 32, 2, 3, 2);
+  return m;
+}
+function createPanningTutorialMatrix() {
+  const m = blankMatrix();
+  line(m, 12, 20, 48, 20, 1, true);
+  drawPlayer(m, 28, 20);
+  line(m, 14, 16, 8, 20, 3); line(m, 8, 20, 14, 24, 3);
+  line(m, 46, 16, 52, 20, 3); line(m, 52, 20, 46, 24, 3);
+  return m;
+}
+function createFunctionKeyTutorialMatrix() {
+  const m = blankMatrix();
+  for (let i = 0; i < 5; i += 1) rect(m, 14 + i * 7, 16, 4, 8, i === 1 ? 4 : 2);
+  line(m, 10, 28, 50, 28, 1, true);
+  return m;
+}
 function createVillageMatrix(focusId) {
   const m = blankMatrix();
-  line(m, 6, 24, 54, 24, 1, true);
-  line(m, 18, 18, 44, 18, 1, true);
+  line(m, 6, 24, 54, 24, 1, true); line(m, 18, 18, 44, 18, 1, true);
   drawHouse(m, 6, 8, focusId === 'home' ? 4 : 1);
   drawTree(m, 20, 10, focusId === 'tree' ? 4 : 1);
   drawPlaza(m, 29, 19, focusId === 'plaza' ? 4 : 1);
@@ -374,35 +431,15 @@ function createVillageMatrix(focusId) {
   drawFlowers(m, 39, 7, focusId === 'flower' ? 4 : 1);
   drawRiver(m, 50, 3, 34, focusId === 'river' ? 4 : 1);
   drawBridge(m, 46, 23, focusId === 'bridge' ? 4 : 2);
-
-  const focusPoint = {
-    home: [11, 20], path: [20, 24], tree: [22, 20], plaza: [30, 24],
-    lumi: [34, 24], flower: [40, 18], bridge: [47, 24], river: [52, 20]
-  }[focusId] || [30, 24];
+  const focusPoint = { home:[11,20], path:[20,24], tree:[22,20], plaza:[30,24], lumi:[34,24], flower:[40,18], bridge:[47,24], river:[52,20] }[focusId] || [30,24];
   drawPlayer(m, focusPoint[0], focusPoint[1]);
   return m;
 }
-
-function createMissionClearMatrix() {
-  const m = createVillageMatrix('lumi');
-  heart(m, 48, 8, 4);
-  heart(m, 12, 30, 2);
-  return m;
-}
-
-function point(m, x, y, value = 1) {
-  if (x >= 0 && x < DOT_WIDTH && y >= 0 && y < DOT_HEIGHT) m[y][x] = value;
-}
-
+function createMissionClearMatrix() { const m = createVillageMatrix('lumi'); heart(m, 48, 8, 4); heart(m, 12, 30, 2); return m; }
+function point(m, x, y, value = 1) { if (x >= 0 && x < DOT_WIDTH && y >= 0 && y < DOT_HEIGHT) m[y][x] = value; }
 function line(m, x1, y1, x2, y2, value = 1, dotted = false) {
-  const dx = Math.abs(x2 - x1);
-  const dy = -Math.abs(y2 - y1);
-  const sx = x1 < x2 ? 1 : -1;
-  const sy = y1 < y2 ? 1 : -1;
-  let err = dx + dy;
-  let x = x1;
-  let y = y1;
-  let count = 0;
+  const dx = Math.abs(x2 - x1), dy = -Math.abs(y2 - y1), sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+  let err = dx + dy, x = x1, y = y1, count = 0;
   while (true) {
     if (!dotted || count % 2 === 0) point(m, x, y, value);
     if (x === x2 && y === y2) break;
@@ -412,111 +449,37 @@ function line(m, x1, y1, x2, y2, value = 1, dotted = false) {
     count += 1;
   }
 }
-
-function rect(m, x, y, w, h, value = 1) {
-  for (let i = 0; i < w; i += 1) {
-    point(m, x + i, y, value);
-    point(m, x + i, y + h - 1, value);
-  }
-  for (let j = 0; j < h; j += 1) {
-    point(m, x, y + j, value);
-    point(m, x + w - 1, y + j, value);
-  }
-}
-
-function drawHouse(m, x, y, value = 1) {
-  line(m, x, y + 5, x + 5, y, value);
-  line(m, x + 5, y, x + 10, y + 5, value);
-  rect(m, x + 1, y + 5, 9, 8, value);
-  rect(m, x + 4, y + 8, 3, 5, value);
-}
-
-function drawTree(m, x, y, value = 1) {
-  for (let yy = -3; yy <= 3; yy += 1) {
-    for (let xx = -4; xx <= 4; xx += 1) {
-      if (xx * xx + yy * yy <= 13) point(m, x + xx, y + yy, value);
-    }
-  }
-  line(m, x, y + 3, x, y + 8, value);
-  line(m, x - 1, y + 8, x + 1, y + 8, value);
-}
-
-function drawFlowers(m, x, y, value = 1) {
-  const spots = [[0,0], [5,1], [10,0], [2,5], [8,5]];
-  spots.forEach(([sx, sy]) => {
-    point(m, x + sx, y + sy, value);
-    point(m, x + sx - 1, y + sy, value);
-    point(m, x + sx + 1, y + sy, value);
-    point(m, x + sx, y + sy - 1, value);
-    point(m, x + sx, y + sy + 1, value);
+function rect(m, x, y, w, h, value = 1) { for (let i=0;i<w;i++){ point(m,x+i,y,value); point(m,x+i,y+h-1,value); } for (let j=0;j<h;j++){ point(m,x,y+j,value); point(m,x+w-1,y+j,value); } }
+function drawHouse(m, x, y, value = 1) { line(m,x,y+5,x+5,y,value); line(m,x+5,y,x+10,y+5,value); rect(m,x+1,y+5,9,8,value); rect(m,x+4,y+8,3,5,value); }
+function drawTree(m, x, y, value = 1) { for(let yy=-3;yy<=3;yy++){ for(let xx=-4;xx<=4;xx++){ if(xx*xx+yy*yy<=13) point(m,x+xx,y+yy,value); } } line(m,x,y+3,x,y+8,value); line(m,x-1,y+8,x+1,y+8,value); }
+function drawFlowers(m, x, y, value = 1) { [[0,0],[5,1],[10,0],[2,5],[8,5]].forEach(([sx,sy]) => { point(m,x+sx,y+sy,value); point(m,x+sx-1,y+sy,value); point(m,x+sx+1,y+sy,value); point(m,x+sx,y+sy-1,value); point(m,x+sx,y+sy+1,value); }); }
+function drawRiver(m, x, y, h, value = 1) { for(let yy=0; yy<h; yy++){ const wave = yy % 4; point(m,x+wave,y+yy,value); point(m,x+3+((wave+2)%4),y+yy,value); } }
+function drawBridge(m, x, y, value = 2) { for(let yy=0; yy<5; yy++) line(m,x,y+yy,x+9,y+yy,value,yy%2===1); }
+function drawPlaza(m, cx, cy, value = 1) { for(let a=0; a<360; a+=18){ const rad=a*Math.PI/180; point(m,Math.round(cx+Math.cos(rad)*7),Math.round(cy+Math.sin(rad)*5),value); } point(m,cx,cy,value); }
+function drawLumi(m, x, y, value = 1) { line(m,x-2,y-6,x-2,y-2,value); line(m,x+2,y-6,x+2,y-2,value); rect(m,x-4,y-2,9,7,value); point(m,x-2,y,value); point(m,x+2,y,value); point(m,x,y+3,value); }
+function drawPlayer(m, x, y) { for(let yy=-1; yy<=1; yy++) for(let xx=-1; xx<=1; xx++) point(m,x+xx,y+yy,3); }
+function heart(m, x, y, value = 4) { [[0,0,1,0,1,0,0],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0]].forEach((row,yy)=>row.forEach((v,xx)=>{ if(v) point(m,x+xx,y+yy,value); })); }
+function textDots(m, x, y, value = 2) { line(m,x,y,x+18,y,value,true); line(m,x,y+4,x+18,y+4,value,true); }
+function mapDotPadKeyToAction(keyCode) { return window.DotPadBridge ? window.DotPadBridge.mapKeyToAction(keyCode, ACTIONS) : null; }
+function sendToDotPad(matrix) { if (window.DotPadBridge) return window.DotPadBridge.sendGraphic(matrix); const binaryMatrix = matrix.map(row => row.map(value => value > 0 ? 1 : 0)); console.log('Send 60x40 binary matrix to Dot Pad:', binaryMatrix); }
+function speak(text) { if (!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'ko-KR'; utterance.rate = 1; window.speechSynthesis.speak(utterance); }
+function playSound(type) {
+  if (!soundEnabled) return;
+  audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+  const now = audioContext.currentTime;
+  const notes = type === 'clear' ? [523, 659, 784, 1046] : type === 'start' ? [392, 523, 659] : type === 'select' ? [660, 880] : [330];
+  notes.forEach((freq, index) => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, now + index * 0.08);
+    gain.gain.setValueAtTime(0.0001, now + index * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.08, now + index * 0.08 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.08 + 0.07);
+    osc.connect(gain).connect(audioContext.destination);
+    osc.start(now + index * 0.08);
+    osc.stop(now + index * 0.08 + 0.08);
   });
-}
-
-function drawRiver(m, x, y, h, value = 1) {
-  for (let yy = 0; yy < h; yy += 1) {
-    const wave = yy % 4;
-    point(m, x + wave, y + yy, value);
-    point(m, x + 3 + ((wave + 2) % 4), y + yy, value);
-  }
-}
-
-function drawBridge(m, x, y, value = 2) {
-  for (let yy = 0; yy < 5; yy += 1) line(m, x, y + yy, x + 9, y + yy, value, yy % 2 === 1);
-}
-
-function drawPlaza(m, cx, cy, value = 1) {
-  for (let a = 0; a < 360; a += 18) {
-    const rad = a * Math.PI / 180;
-    point(m, Math.round(cx + Math.cos(rad) * 7), Math.round(cy + Math.sin(rad) * 5), value);
-  }
-  point(m, cx, cy, value);
-}
-
-function drawLumi(m, x, y, value = 1) {
-  line(m, x - 2, y - 6, x - 2, y - 2, value);
-  line(m, x + 2, y - 6, x + 2, y - 2, value);
-  rect(m, x - 4, y - 2, 9, 7, value);
-  point(m, x - 2, y + 0, value);
-  point(m, x + 2, y + 0, value);
-  point(m, x, y + 3, value);
-}
-
-function drawPlayer(m, x, y) {
-  for (let yy = -1; yy <= 1; yy += 1) {
-    for (let xx = -1; xx <= 1; xx += 1) point(m, x + xx, y + yy, 3);
-  }
-}
-
-function heart(m, x, y, value = 4) {
-  const shape = [[0,0,1,0,1,0,0],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0]];
-  shape.forEach((row, yy) => row.forEach((v, xx) => { if (v) point(m, x + xx, y + yy, value); }));
-}
-
-function mapDotPadKeyToAction(keyCode) {
-  const hardwareMap = {
-    LEFT_TRIANGLE: ACTIONS.PREVIOUS,
-    RIGHT_TRIANGLE: ACTIONS.NEXT,
-    FUNCTION_1: ACTIONS.READ_CURRENT,
-    FUNCTION_2: ACTIONS.INTERACT_OR_NEXT,
-    FUNCTION_3: ACTIONS.READ_MISSION,
-    FUNCTION_4: ACTIONS.READ_AROUND,
-    FUNCTION_5: ACTIONS.HELP_OR_MENU
-  };
-  return hardwareMap[keyCode] || null;
-}
-
-function sendToDotPad(matrix) {
-  const binaryMatrix = matrix.map(row => row.map(value => value > 0 ? 1 : 0));
-  console.log('Send 60x40 binary matrix to Dot Pad:', binaryMatrix);
-}
-
-function speak(text) {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ko-KR';
-  utterance.rate = 1;
-  window.speechSynthesis.speak(utterance);
 }
 
 init();
