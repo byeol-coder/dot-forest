@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./dtms.css" />
   <link rel="stylesheet" href="./visual-polish.css" />
   <link rel="stylesheet" href="./session-scenes.css" />
+  <link rel="stylesheet" href="./movement.css" />
 </head>
 <body>
   <div class="app">
@@ -26,7 +27,7 @@
       </section>
       <section class="top-stat">
         <span class="stat-icon pin" aria-hidden="true"></span>
-        <div><small>현재 위치</small><strong id="topLocation">숲속 마을 입구</strong></div>
+        <div><small>현재 위치</small><strong id="topLocation">루미와 첫 인사</strong></div>
       </section>
       <section class="top-stat">
         <span class="stat-icon berry" aria-hidden="true">🍓</span>
@@ -37,8 +38,8 @@
 
     <main class="dashboard">
       <section class="game-panel panel glow" aria-label="Visual Game Screen">
-        <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">숲속 마을 입구</span></div>
-        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="entrance" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+        <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">루미와 첫 인사</span></div>
+        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="lumi" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
           <div class="session-title-card" id="sessionTitleCard">SESSION 01 · 루미와 첫 인사</div>
           <div class="pixel-sky"></div>
           <div class="sunset-glow"></div>
@@ -88,14 +89,14 @@
         <div class="panel-title"><strong>60×40 TACTILE OUTPUT</strong><span class="live">DTMS 변환 가능 ●</span></div>
         <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 Dot Pad 촉각 출력 화면"></div>
         <div class="tactile-status">
-          <div><small>현재 장면</small><strong id="tactileScene">숲속 마을 입구</strong></div>
+          <div><small>현재 장면</small><strong id="tactileScene">루미와 첫 인사</strong></div>
           <div><small>캐릭터 위치</small><strong id="tactilePosition">중앙</strong></div>
           <div><small>출력 상태</small><strong id="tactileState">정상 출력 중 ✅</strong></div>
         </div>
         <div class="dtms-status">
           <div><small>DTMS 구조</small><strong>60×40 pins · 30×10 cells</strong></div>
           <div><small>graphic.data</small><strong><span id="byteCount">300</span> bytes · <span id="hexCount">600</span> hex</strong></div>
-          <div><small>text.plain</small><p id="plainTextPreview">중앙에 플레이어가 있고 오른쪽에 루미가 있습니다.</p></div>
+          <div><small>text.plain</small><p id="plainTextPreview">왼쪽 아래에 플레이어가 있고 오른쪽 아래에 루미가 있습니다.</p></div>
           <code id="hexPreview" aria-label="DTMS graphic data hex preview">HEX PREVIEW</code>
         </div>
         <div class="dot-guide">
@@ -110,7 +111,7 @@
       </section>
       <section class="message-card panel">
         <h2>안내 메시지</h2>
-        <p id="guideMessage">루미에게 다가가 인사를 나눠보세요.</p>
+        <p id="guideMessage">좌우 패닝키로 루미에게 다가가 보세요.</p>
         <strong id="nextGuide">기능키 2(선택/다음)를 누르면 대화가 시작됩니다.</strong>
         <button id="soundToggle" type="button" aria-pressed="false" class="sound">🔊 효과음 OFF</button>
       </section>
