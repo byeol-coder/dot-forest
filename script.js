@@ -37,18 +37,18 @@ const keyboardToDotPadAction = {
 };
 
 // 핵심 설계 원칙:
-// 1. VISUAL GAME SCREEN은 동물의 숲/피크민이 떠오르는 풍성한 8비트 마을 분위기
-// 2. DOT PAD 60x40 SCREEN은 시각장애 아이들이 혼동하지 않도록 한 화면에 주요 오브젝트 1개만 표시
-// 3. 시각 장면과 촉각 변환 결과를 나란히 보여주되, 촉각 출력은 절대 겹치지 않게 구성
+// 1. VISUAL GAME SCREEN은 따뜻한 숲속 생활형 어드벤처처럼 풍성하게 구성
+// 2. DOT PAD 60x40 SCREEN은 시각장애 아이들이 혼동하지 않도록 한 화면에 주요 오브젝트 1개 중심으로 표시
+// 3. 시각 장면과 촉각 변환 결과를 함께 보여주되, 촉각 출력은 겹치지 않게 구성
 const PLACES = [
-  { id: 'home', name: '내 집', braille: '내 집입니다', speech: '닷 빌리지에 처음 도착한 작은 집입니다.', hint: '시작 지점입니다. 오른쪽 이동키로 다음 장소를 확인합니다.', visualX: '13%', visualY: '20%' },
-  { id: 'path', name: '작은 길', braille: '작은 길', speech: '마을을 이어주는 점선 길입니다.', hint: '왼쪽은 내 집, 오른쪽은 사과나무입니다.', visualX: '33%', visualY: '17%' },
-  { id: 'tree', name: '사과나무', braille: '사과나무', speech: '둥근 수관과 짧은 줄기가 있는 사과나무입니다.', hint: '기능키 2로 나무를 만져볼 수 있어요.', visualX: '30%', visualY: '18%' },
-  { id: 'plaza', name: '광장', braille: '광장입니다', speech: '마을 친구들이 모이는 둥근 광장입니다.', hint: '루미가 가까워지고 있습니다.', visualX: '50%', visualY: '21%' },
-  { id: 'lumi', name: '루미', braille: '루미 근처', speech: '작은 토끼 친구 루미가 기다리고 있습니다.', hint: '기능키 2를 누르면 루미와 인사합니다.', visualX: '57%', visualY: '31%' },
-  { id: 'flower', name: '꽃밭', braille: '꽃밭입니다', speech: '작은 십자 패턴의 꽃들이 모여 있습니다.', hint: '꽃밭은 다음 미션에서 다시 찾아올 수 있어요.', visualX: '72%', visualY: '17%' },
-  { id: 'bridge', name: '다리', braille: '다리입니다', speech: '강을 건널 수 있는 굵은 점선 다리입니다.', hint: '다리는 강가로 이어집니다.', visualX: '78%', visualY: '36%' },
-  { id: 'river', name: '강가', braille: '강가입니다', speech: '물결형 점선으로 표현된 강입니다.', hint: '강은 바로 건널 수 없고 다리를 이용해야 합니다.', visualX: '86%', visualY: '32%' }
+  { id: 'home', name: '내 집', braille: '내 집입니다', speech: '닷 빌리지에 처음 도착한 작은 오두막입니다.', hint: '시작 지점입니다. 오른쪽 이동키로 숲길을 확인합니다.', visualX: '16%', visualY: '25%' },
+  { id: 'path', name: '돌길', braille: '돌길입니다', speech: '오두막에서 숲속 광장으로 이어지는 둥근 돌길입니다.', hint: '작은 동료들이 뒤를 따라오기 시작합니다.', visualX: '36%', visualY: '16%' },
+  { id: 'tree', name: '열매나무', braille: '열매나무', speech: '붉은 열매가 달린 큰 나무입니다.', hint: '기능키 2로 나무를 만지면 열매 줍기 미션으로 확장할 수 있어요.', visualX: '31%', visualY: '31%' },
+  { id: 'plaza', name: '숲속 광장', braille: '숲속 광장', speech: '꽃과 바위, 표지판이 있는 작은 광장입니다.', hint: '루미가 가까워지고 있습니다.', visualX: '49%', visualY: '25%' },
+  { id: 'lumi', name: '루미', braille: '루미 근처', speech: '작은 토끼 친구 루미가 기다리고 있습니다.', hint: '기능키 2를 누르면 루미와 인사합니다.', visualX: '57%', visualY: '34%' },
+  { id: 'flower', name: '꽃밭', braille: '꽃밭입니다', speech: '작은 꽃들이 모여 있는 미션 꽃밭입니다.', hint: '꽃밭은 물 주기 미션으로 확장할 수 있어요.', visualX: '72%', visualY: '18%' },
+  { id: 'bridge', name: '나무다리', braille: '나무다리', speech: '강을 건널 수 있는 나무다리입니다.', hint: '다리를 건너면 물가 탐험으로 이어집니다.', visualX: '79%', visualY: '38%' },
+  { id: 'river', name: '물가', braille: '물가입니다', speech: '흐르는 강과 돌이 있는 물가입니다.', hint: '강은 바로 건널 수 없고 다리를 이용해야 합니다.', visualX: '87%', visualY: '33%' }
 ];
 
 let gameState = GAME_STATES.TITLE;
@@ -158,25 +158,25 @@ function showTitle() {
     state: GAME_STATES.TITLE,
     matrix: createTactileTitleMatrix(),
     visualId: 'title',
-    speech: 'DOT VILLAGE ARCADE. 왼쪽은 실제 게임 화면, 오른쪽은 Dot Pad 촉각 변환 화면입니다. 기능키 2를 누르면 시작합니다.',
+    speech: 'DOT VILLAGE ARCADE. 왼쪽은 풍성한 숲속 게임 화면, 오른쪽은 Dot Pad 촉각 변환 화면입니다. 기능키 2를 누르면 시작합니다.',
     braille: 'PRESS 기능키2\nTO START',
-    mission: '8비트 마을 게임 화면과 60×40 촉각 출력을 함께 확인합니다.',
+    mission: '숲속 게임 장면과 60×40 촉각 출력을 함께 확인합니다.',
     place: '타이틀 화면',
     banner: 'TITLE SCREEN',
     stage: 'PRESS 기능키 2 TO START',
     hint: 'PRESS 기능키 2 TO START'
   });
-  addLog('타이틀 화면: 시각 게임 화면과 Dot Pad 촉각 화면을 함께 보여줍니다.');
+  addLog('타이틀 화면: 풍성한 시각 게임 화면과 명확한 촉각 화면을 함께 보여줍니다.');
 }
 
 function showIntroStep(step) {
   introStep = step;
   const scenes = [
-    ['첫 번째 점이 깨어났어요. 시각 화면에는 마을의 밤하늘이, 촉각 화면에는 첫 점 하나가 켜집니다.', '첫 점 켜짐\n마을 시작', '첫 번째 점', 'DOT LOADING', 'dot'],
-    ['작은 길이 생깁니다. 시각 화면은 마을길을 보여주고, 촉각 화면은 단순 점선 길만 보여줍니다.', '작은 길 등장\n단순 점선', '작은 길', 'DOT LOADING', 'path'],
-    ['집과 나무가 보입니다. 촉각 화면은 혼동을 줄이기 위해 집 하나만 크게 보여줍니다.', '집 등장\n하나만 표시', '집', 'DOT LOADING', 'home'],
-    ['강과 다리가 나타났어요. 촉각 화면은 다리 형태만 분리해서 보여줍니다.', '다리 등장\n분리 표시', '다리', 'DOT LOADING', 'bridge'],
-    ['안녕! 나는 루미야. 촉각 화면에는 루미만 크게 표시할게요.', '루미: 안녕!\n하나만 표시', '루미 등장', 'LUMI APPEARS', 'lumi']
+    ['첫 번째 점이 깨어났어요. 시각 화면에는 숲속 밤하늘과 마을이 보이고, 촉각 화면에는 첫 점 하나가 켜집니다.', '첫 점 켜짐\n마을 시작', '첫 번째 점', 'DOT LOADING', 'dot'],
+    ['작은 돌길이 생깁니다. 시각 화면은 숲길과 동료들을 보여주고, 촉각 화면은 단순 점선 길만 보여줍니다.', '돌길 등장\n단순 점선', '돌길', 'DOT LOADING', 'path'],
+    ['오두막과 열매나무가 보입니다. 촉각 화면은 혼동을 줄이기 위해 집 하나만 크게 보여줍니다.', '오두막 등장\n하나만 표시', '오두막', 'DOT LOADING', 'home'],
+    ['강과 다리가 나타났어요. 시각 화면은 물가와 다리, 촉각 화면은 다리 형태만 분리해서 보여줍니다.', '다리 등장\n분리 표시', '나무다리', 'DOT LOADING', 'bridge'],
+    ['안녕! 나는 루미야. 작은 동료들과 함께 마을을 탐험해보자. 촉각 화면에는 루미만 크게 표시할게요.', '루미: 안녕!\n하나만 표시', '루미 등장', 'LUMI APPEARS', 'lumi']
   ];
   const scene = scenes[step] || scenes[scenes.length - 1];
   gameState = step >= 4 ? GAME_STATES.GREETING : GAME_STATES.INTRO;
@@ -192,8 +192,8 @@ function showIntroStep(step) {
     stage: step >= 4 ? 'LUMI APPEARS!' : 'DOT LOADING...',
     hint: '기능키 2로 계속'
   });
-  addLog(`${scene[2]} 장면: 촉각 화면은 주요 오브젝트 1개만 표시합니다.`);
-  if (step >= 4) speak('안녕! 나는 루미야. 촉각 화면에는 루미만 크게 표시할게요.');
+  addLog(`${scene[2]} 장면: 시각 화면은 풍성하게, 촉각 화면은 핵심 오브젝트 1개만 표시합니다.`);
+  if (step >= 4) speak('안녕! 나는 루미야. 작은 동료들과 함께 마을을 탐험해보자.');
 }
 
 function showHardwareGuide() {
@@ -209,7 +209,7 @@ function showHardwareGuide() {
     stage: 'HARDWARE GUIDE',
     hint: '기능키 2로 다음'
   });
-  addLog('하드웨어 안내: 십자키가 아니라 좌측 이동키·기능키 5개·우측 이동키입니다.');
+  addLog('하드웨어 안내: 좌측 이동키·기능키 5개·우측 이동키 구조를 소개합니다.');
 }
 
 function showTutorialPanning() {
@@ -296,7 +296,7 @@ function interact() {
       visualId: 'clear',
       speech: '반가워! 이제 이 마을을 함께 둘러보자. 미션 완료!',
       braille: '미션 완료!\n루미와 인사함',
-      mission: 'MISSION CLEAR! 루미와 첫 인사를 나눴어요.',
+      mission: 'MISSION CLEAR! 루미와 첫 인사를 나눴어요. 다음 미션은 열매 줍기, 다리 건너기, 꽃밭 찾기로 확장할 수 있어요.',
       place: '루미',
       banner: 'MISSION CLEAR!',
       stage: 'MISSION CLEAR!',
@@ -314,9 +314,10 @@ function interact() {
     return;
   }
   const place = PLACES[placeIndex];
-  if (place.id === 'tree') announce('사과나무', '톡톡! 사과나무를 만졌어요. 다음 버전에서는 사과를 얻을 수 있어요.', '사과나무 터치\n다음버전 수확');
-  else if (place.id === 'home') announce('내 집', '내 집입니다. 오늘의 모험을 시작한 장소예요.', '내 집입니다\n시작 장소');
-  else if (place.id === 'flower') announce('꽃밭', '작은 꽃밭입니다. 다음 미션에서는 물을 줄 수 있어요.', '꽃밭입니다\n다음미션 예정');
+  if (place.id === 'tree') announce('열매나무', '톡톡! 열매나무를 만졌어요. 다음 버전에서는 열매 줍기 미션을 할 수 있어요.', '열매나무 터치\n다음미션 예정');
+  else if (place.id === 'home') announce('내 집', '내 집입니다. 오늘의 모험을 시작한 작은 오두막이에요.', '내 집입니다\n시작 장소');
+  else if (place.id === 'flower') announce('꽃밭', '작은 꽃밭입니다. 다음 미션에서는 꽃에 물을 줄 수 있어요.', '꽃밭입니다\n물주기 예정');
+  else if (place.id === 'bridge') announce('나무다리', '나무다리입니다. 다음 버전에서는 다리 건너기 미션을 할 수 있어요.', '나무다리\n건너기 예정');
   else announce(place.name, '지금은 상호작용할 수 없어요. 좌우 이동키로 다른 장소를 찾아보세요.', '상호작용 없음\n좌우로 이동');
 }
 
@@ -330,7 +331,7 @@ function readMission() {
 }
 function readAround() {
   if ([GAME_STATES.TITLE, GAME_STATES.INTRO, GAME_STATES.GREETING, GAME_STATES.HARDWARE_GUIDE, GAME_STATES.TUTORIAL_PANNING, GAME_STATES.TUTORIAL_FUNCTION_KEYS].includes(gameState)) {
-    announce('주변 설명', '왼쪽 시각 화면은 풍성한 게임 장면, 오른쪽 촉각 화면은 단순 변환 결과입니다.', '시각/촉각\n같이 확인');
+    announce('주변 설명', '왼쪽 시각 화면은 숲속 마을을 풍성하게 보여주고, 오른쪽 촉각 화면은 핵심 오브젝트만 단순하게 보여줍니다.', '시각은 풍성\n촉각은 단순');
     return;
   }
   const prev = PLACES[placeIndex - 1]?.name || '왼쪽 끝';
@@ -338,7 +339,7 @@ function readAround() {
   announce('주변 설명', `왼쪽에는 ${prev}, 오른쪽에는 ${next}이 있습니다.`, `왼쪽:${prev}\n오른쪽:${next}`);
 }
 function readHelp() {
-  announce('도움말', '시각 화면은 게임 분위기를 보여주고, Dot Pad 화면은 아이들이 혼동하지 않도록 현재 장소의 핵심 촉각 오브젝트 하나만 보여줍니다.', '시각은 풍성\n촉각은 단순');
+  announce('도움말', '시각 화면은 숲속 게임 분위기를 보여주고, Dot Pad 화면은 아이들이 혼동하지 않도록 현재 장소의 핵심 촉각 오브젝트 하나만 보여줍니다.', '시각은 풍성\n촉각은 단순');
 }
 function announce(title, speech, braille) {
   lumiSpeech.textContent = `${title}: ${speech}`;
@@ -380,16 +381,33 @@ function renderVisualScene(visualId, label = '') {
   visualGameScreen.style.setProperty('--focus-y', focusY);
   visualGameScreen.style.setProperty('--player-x', `calc(${focusX} - 24px)`);
   visualGameScreen.style.setProperty('--player-y', `calc(${focusY} - 10px)`);
-
   visualGameScreen.innerHTML = `
     <div class="visual-caption">${caption}</div>
-    <div class="visual-sprite v-house"></div>
-    <div class="visual-sprite v-tree"></div>
-    <div class="visual-sprite v-flower"></div>
+    <div class="visual-sprite v-sky-cloud"></div>
+    <div class="visual-sprite v-path"></div>
     <div class="visual-sprite v-river"></div>
     <div class="visual-sprite v-bridge"></div>
+    <div class="visual-sprite v-orchard-tree v-tree-a"></div>
+    <div class="visual-sprite v-orchard-tree v-tree-b"></div>
+    <div class="visual-sprite v-orchard-tree v-tree-c"></div>
+    <div class="visual-sprite v-apple a1"></div>
+    <div class="visual-sprite v-apple a2"></div>
+    <div class="visual-sprite v-apple a3"></div>
+    <div class="visual-sprite v-house"></div>
+    <div class="visual-sprite v-flower"></div>
+    <div class="visual-sprite v-rock r1"></div>
+    <div class="visual-sprite v-rock r2"></div>
+    <div class="visual-sprite v-rock r3"></div>
+    <div class="visual-sprite v-berry b1"></div>
+    <div class="visual-sprite v-berry b2"></div>
+    <div class="visual-sprite v-berry b3"></div>
+    <div class="visual-sprite v-signpost"></div>
+    <div class="visual-sprite v-mission-item coin"></div>
+    <div class="visual-sprite v-mission-item leaf"></div>
     <div class="visual-sprite v-lumi"></div>
-    <div class="visual-sprite v-pikmin-buddy"></div>
+    <div class="visual-sprite v-buddy buddy-1"></div>
+    <div class="visual-sprite v-buddy buddy-2"></div>
+    <div class="visual-sprite v-buddy buddy-3"></div>
     <div class="visual-sprite v-player"></div>
     <div class="visual-sprite v-focus-ring"></div>
   `;
@@ -416,7 +434,6 @@ function createTactileTitleMatrix() {
   drawSafeProgress(m, 0);
   return m;
 }
-
 function createTactileSceneMatrix(id, index = 0) {
   const m = blankMatrix();
   if (id === 'dot') point(m, 30, 18, 2);
@@ -473,7 +490,7 @@ function drawSafeProgress(m, activeIndex) {
 }
 function drawSafePath(m) { line(m, 10, 18, 50, 18, 1, true); line(m, 10, 22, 50, 22, 1, true); }
 function drawSafeHouse(m) { line(m, 20, 17, 30, 8, 1); line(m, 30, 8, 40, 17, 1); rect(m, 21, 17, 18, 12, 1); rect(m, 28, 22, 4, 7, 2); }
-function drawSafeTree(m) { for (let yy=-6; yy<=6; yy++) for (let xx=-9; xx<=9; xx++) if (xx*xx + yy*yy <= 60) point(m, 30+xx, 14+yy, 1); rect(m, 28, 21, 5, 10, 2); }
+function drawSafeTree(m) { for (let yy=-6; yy<=6; yy++) for (let xx=-9; xx<=9; xx++) if (xx*xx + yy*yy <= 60) point(m, 30+xx, 14+yy, 1); rect(m, 28, 21, 5, 10, 2); point(m,25,11,4); point(m,35,10,4); }
 function drawSafePlaza(m) { for(let a=0; a<360; a+=12){ const r=a*Math.PI/180; point(m, Math.round(30+Math.cos(r)*14), Math.round(18+Math.sin(r)*9), 1); } point(m,30,18,2); }
 function drawSafeLumi(m, x=30, y=18, value=4) { line(m,x-4,y-12,x-4,y-4,value); line(m,x+4,y-12,x+4,y-4,value); rect(m,x-8,y-4,17,12,value); point(m,x-4,y+1,value); point(m,x+4,y+1,value); line(m,x-2,y+6,x+2,y+6,value); }
 function drawSafeFlower(m) { const centers = [[24,15],[32,15],[28,23],[38,22]]; centers.forEach(([x,y]) => { point(m,x,y,2); point(m,x-2,y,1); point(m,x+2,y,1); point(m,x,y-2,1); point(m,x,y+2,1); }); }
