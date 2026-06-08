@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./dtms.css" />
   <link rel="stylesheet" href="./visual-polish.css" />
+  <link rel="stylesheet" href="./session-scenes.css" />
 </head>
 <body>
   <div class="app">
@@ -37,7 +38,8 @@
     <main class="dashboard">
       <section class="game-panel panel glow" aria-label="Visual Game Screen">
         <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">숲속 마을 입구</span></div>
-        <div class="game-screen rich-scene" id="gameScreen" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="entrance" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+          <div class="session-title-card" id="sessionTitleCard">SESSION 01 · 루미와 첫 인사</div>
           <div class="pixel-sky"></div>
           <div class="sunset-glow"></div>
           <div class="cloud cloud-a"></div><div class="cloud cloud-b"></div>
@@ -67,7 +69,7 @@
           <div class="butterfly bfly-a"></div><div class="butterfly bfly-b"></div>
           <div class="firefly f-a"></div><div class="firefly f-b"></div><div class="firefly f-c"></div>
           <div class="mini-map-overlay"><b>MINI MAP</b><div class="map-grid"><i></i><i></i><i class="target"></i><i></i><i class="player"></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="mission-overlay"><b>MISSION 01</b><strong>루미와 첫 인사</strong><span>□ 루미에게 다가가기</span></div>
+          <div class="mission-overlay"><b>MISSION 01</b><strong>루미와 첫 인사</strong><span id="missionOverlayStep">□ 루미에게 다가가기</span></div>
           <div class="player" id="playerSprite"><span class="ears"></span><span class="face-mark"></span><span class="body"></span></div>
           <div class="companion c1"></div><div class="companion c2"></div><div class="companion c3"></div><div class="companion c4"></div>
           <div class="lumi" id="lumiSprite"><span></span></div>
