@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./session-scenes.css" />
   <link rel="stylesheet" href="./movement.css" />
   <link rel="stylesheet" href="./visual-only.css" />
+  <link rel="stylesheet" href="./main-scenes.css" />
 </head>
 <body>
   <div class="app">
@@ -40,7 +41,13 @@
     <main class="dashboard">
       <section class="game-panel panel glow" aria-label="Visual Game Screen">
         <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">루미와 첫 인사</span></div>
-        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="lumi" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="lumi" role="img" aria-label="숲속 마을 게임 화면">
+          <div class="scene-bg scene-bg-1" aria-hidden="true"></div>
+          <div class="scene-bg scene-bg-2" aria-hidden="true"></div>
+          <div class="scene-bg scene-bg-3" aria-hidden="true"></div>
+          <div class="scene-bg scene-bg-4" aria-hidden="true"></div>
+          <div class="scene-light" aria-hidden="true"></div>
+
           <div class="session-title-card" id="sessionTitleCard">SESSION 01 · 루미와 첫 인사</div>
           <div class="pixel-sky"></div>
           <div class="sunset-glow"></div>
