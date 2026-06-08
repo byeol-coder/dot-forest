@@ -13,22 +13,34 @@
     <header class="arcade-header">
       <p class="eyebrow">손끝으로 플레이하는 8비트 촉각 마을 어드벤처</p>
       <h1 class="pixel-title">DOT VILLAGE ARCADE</h1>
-      <p class="subtitle">손끝으로 만나는 작은 촉각 마을</p>
+      <p class="subtitle">시각 게임 장면과 60×40 촉각 출력을 함께 보여주는 Dot Pad 마을 게임</p>
     </header>
 
     <main class="main-layout">
-      <section class="device-zone" aria-label="Dot Pad 하드웨어 시뮬레이터">
+      <section class="device-zone" aria-label="게임 화면과 Dot Pad 하드웨어 시뮬레이터">
         <div class="arcade-shell">
-          <div class="device-top-label">DOT PAD · 60×40</div>
+          <div class="device-top-label">VISUAL GAME + DOT PAD · 60×40</div>
 
-          <section class="dot-screen-frame" aria-label="60×40 촉각 그래픽 화면">
-            <div class="screen-meta">
-              <span id="screenMode">TITLE</span>
-              <span id="screenHint" class="blink-text">PRESS 기능키 2</span>
-            </div>
-            <div id="stageBanner" class="stage-banner">PRESS 기능키 2 TO START</div>
-            <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 촉각 그래픽 프리뷰"></div>
-          </section>
+          <div class="screen-pair" aria-label="시각 게임 화면과 촉각 변환 화면 비교">
+            <section class="game-preview-frame" aria-label="8비트 시각 게임 화면">
+              <div class="screen-meta">
+                <span>VISUAL GAME SCREEN</span>
+                <span id="visualSceneName">TITLE</span>
+              </div>
+              <div id="visualGameScreen" class="visual-game-screen" role="img" aria-label="8비트 마을 게임 시각 화면">
+                <div class="visual-caption">PRESS 기능키 2 TO START</div>
+              </div>
+            </section>
+
+            <section class="dot-screen-frame" aria-label="60×40 촉각 그래픽 화면">
+              <div class="screen-meta">
+                <span id="screenMode">TITLE</span>
+                <span id="screenHint" class="blink-text">PRESS 기능키 2</span>
+              </div>
+              <div id="stageBanner" class="stage-banner">PRESS 기능키 2 TO START</div>
+              <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 촉각 그래픽 프리뷰"></div>
+            </section>
+          </div>
 
           <section class="hardware-keys" aria-label="Dot Pad 실제 키 구조 기반 조작부">
             <button class="triangle-key left-key pixel-button" type="button" aria-label="좌측 이동키, 이전 장소로 이동" data-action="PREVIOUS">◀</button>
@@ -81,7 +93,7 @@
           </div>
           <div>
             <h2 id="lumiTitle">루미</h2>
-            <p id="lumiSpeech" aria-live="polite">DOT VILLAGE ARCADE에 오신 걸 환영해요. 기능키 2로 시작해요!</p>
+            <p id="lumiSpeech" aria-live="polite">시각 게임 화면은 풍성하게, Dot Pad 촉각 화면은 한 번에 하나씩 명확하게 보여줄게요.</p>
           </div>
         </section>
 
