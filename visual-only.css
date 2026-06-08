@@ -78,7 +78,7 @@ body {
   display: none !important;
 }
 
-/* 캐릭터는 상단 애니메이션의 주인공이므로 더 선명하게 보이도록 레이어 강화 */
+/* 기존 배경 이미지 속 캐릭터와 겹치지 않도록 조작 오브젝트를 작고 낮은 전경 레이어로 정리 */
 .player,
 .companion,
 .lumi,
@@ -87,18 +87,20 @@ body {
   z-index: 30 !important;
 }
 
-/* 배경이 이미지 중심으로 보일 수 있도록 기존 픽셀 장식 레이어는 약하게 처리 */
+.player,
+.companion,
+.lumi {
+  filter: drop-shadow(0 7px 10px rgba(0,0,0,.36));
+}
+
+/* 배경 안에 이미 충분한 오브젝트가 있으므로, 추가 픽셀 장식은 숨겨 실제 게임 이미지 중심으로 보이게 처리 */
 .tile-map,
 .grass-detail,
 .pixel-sky,
 .sunset-glow,
 .cloud,
 .far-hills,
-.forest-backdrop {
-  opacity: 0 !important;
-}
-
-/* 기존 오브젝트는 이미지 위에 과하게 겹치지 않도록 일부 장식만 약화 */
+.forest-backdrop,
 .cabin,
 .tree,
 .berry-tree,
@@ -110,7 +112,6 @@ body {
 .mushroom,
 .crate,
 .chest,
-.path,
 .path-stones,
 .river,
 .bridge,
@@ -119,7 +120,12 @@ body {
 .butterfly,
 .firefly,
 .water-sparkle {
-  opacity: .92;
+  opacity: 0 !important;
+}
+
+/* path는 아주 약하게만 남겨 캐릭터가 걷는 바닥감을 보조합니다. */
+.path {
+  opacity: .18 !important;
 }
 
 /* 키보드/닷패드 조작은 화면 UI 없이도 가능 */
@@ -129,11 +135,17 @@ body::after {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 45%, transparent 0 45%, rgba(0,0,0,.18) 100%),
-    linear-gradient(to bottom, rgba(0,0,0,.08), rgba(0,0,0,.12));
+    radial-gradient(circle at 50% 45%, transparent 0 48%, rgba(0,0,0,.16) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.04), rgba(0,0,0,.1));
   z-index: 1;
 }
 
 .game-screen > * {
   position: absolute;
+}
+
+@media (max-width: 900px) {
+  .game-screen[data-session="lumi"] {
+    transform-origin: left top;
+  }
 }
