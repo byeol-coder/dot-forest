@@ -5,21 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dot Village Arcade · 닷 빌리지 아케이드</title>
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./enhance.css" />
 </head>
 <body>
   <div class="app" data-state="title">
     <div class="pixel-stars" aria-hidden="true"></div>
 
     <header class="arcade-header">
-      <p class="eyebrow">손끝으로 플레이하는 8비트 촉각 마을 어드벤처</p>
+      <p class="eyebrow">실시간 시각 게임 장면 ↔ 60×40 촉각 출력 변환</p>
       <h1 class="pixel-title">DOT VILLAGE ARCADE</h1>
-      <p class="subtitle">시각 게임 장면과 60×40 촉각 출력을 함께 보여주는 Dot Pad 마을 게임</p>
+      <p class="subtitle">8-bit tactile village adventure · 손끝으로 만나는 작은 촉각 마을</p>
     </header>
 
     <main class="main-layout">
       <section class="device-zone" aria-label="게임 화면과 Dot Pad 하드웨어 시뮬레이터">
         <div class="arcade-shell">
-          <div class="device-top-label">VISUAL GAME + DOT PAD · 60×40</div>
+          <div class="device-top-label">VISUAL GAME + DOT PAD · 60×40 LIVE OUTPUT</div>
 
           <div class="screen-pair" aria-label="시각 게임 화면과 촉각 변환 화면 비교">
             <section class="game-preview-frame" aria-label="8비트 시각 게임 화면">
@@ -34,13 +35,46 @@
 
             <section class="dot-screen-frame" aria-label="60×40 촉각 그래픽 화면">
               <div class="screen-meta">
-                <span id="screenMode">TITLE</span>
+                <span id="screenMode">60×40 TACTILE OUTPUT</span>
                 <span id="screenHint" class="blink-text">PRESS 기능키 2</span>
+              </div>
+              <div class="tactile-labels" aria-label="촉각 출력 상태">
+                <span>Current Scene: <b id="tactileSceneLabel">Forest Village</b></span>
+                <span>Character: <b id="tactilePositionLabel">Center</b></span>
+                <span>Status: <b id="tactileStatusLabel">Mission Object Detected</b></span>
               </div>
               <div id="stageBanner" class="stage-banner">PRESS 기능키 2 TO START</div>
               <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 촉각 그래픽 프리뷰"></div>
             </section>
           </div>
+
+          <section class="play-hud pixel-panel" aria-label="게임 플레이 HUD">
+            <div class="mini-map" aria-label="미니맵">
+              <strong>MINI MAP</strong>
+              <div class="mini-map-grid">
+                <span class="mini-node active" data-node="home"></span>
+                <span class="mini-node" data-node="path"></span>
+                <span class="mini-node" data-node="tree"></span>
+                <span class="mini-node" data-node="plaza"></span>
+                <span class="mini-node target" data-node="lumi"></span>
+                <span class="mini-node" data-node="flower"></span>
+                <span class="mini-node" data-node="bridge"></span>
+                <span class="mini-node" data-node="river"></span>
+              </div>
+            </div>
+            <div class="hud-card">
+              <span>현재 미션</span>
+              <strong id="hudMission">MISSION 01 · 루미와 첫 인사</strong>
+            </div>
+            <div class="hud-card">
+              <span>수집 아이템</span>
+              <strong id="hudItems">열매 0 · 꽃 0</strong>
+            </div>
+            <div class="hud-card">
+              <span>다음 행동</span>
+              <strong id="hudAction">기능키 2로 시작</strong>
+            </div>
+          </section>
 
           <section class="hardware-keys" aria-label="Dot Pad 실제 키 구조 기반 조작부">
             <button class="triangle-key left-key pixel-button" type="button" aria-label="좌측 이동키, 이전 장소로 이동" data-action="PREVIOUS">◀</button>
@@ -123,5 +157,6 @@
 
   <script src="./dotpad-adapter.js"></script>
   <script src="./script.js"></script>
+  <script src="./visual-enhance.js"></script>
 </body>
 </html>
