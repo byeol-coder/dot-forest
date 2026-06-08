@@ -39,11 +39,13 @@ const SCENES = [
   }
 ];
 
+// Visual-only mode에서 배경 이미지 중앙의 기존 루미/도트링과 겹치지 않도록,
+// 조작 캐릭터는 좌측 하단 흙길 레이어를 따라 작게 이동합니다.
 const PLAYER_PATH = [
-  { label: '마을 입구', left: 250, top: 372, dot: [16, 31], companion: [[210,432],[232,394],[184,404],[300,432]], direction: 'right' },
-  { label: '흙길 중앙', left: 318, top: 372, dot: [23, 31], companion: [[270,430],[288,398],[236,410],[360,432]], direction: 'right' },
-  { label: '루미 앞 길', left: 386, top: 372, dot: [30, 31], companion: [[334,430],[358,402],[306,414],[420,432]], direction: 'right' },
-  { label: '루미 근처', left: 454, top: 372, dot: [36, 31], companion: [[404,430],[426,404],[374,414],[486,432]], nearLumi: true, direction: 'right' }
+  { label: '왼쪽 숲길 입구', left: 126, top: 522, dot: [13, 32], companion: [[82, 576], [102, 548], [62, 552], [148, 574]], direction: 'right' },
+  { label: '아래쪽 흙길', left: 206, top: 526, dot: [21, 32], companion: [[160, 580], [182, 550], [136, 556], [226, 578]], direction: 'right' },
+  { label: '중앙 아래 갈림길', left: 286, top: 520, dot: [29, 31], companion: [[240, 574], [262, 546], [218, 552], [308, 572]], direction: 'right' },
+  { label: '토토 앞 숲길', left: 366, top: 512, dot: [37, 31], companion: [[320, 566], [344, 540], [298, 548], [386, 566]], nearLumi: true, direction: 'right' }
 ];
 
 let sceneIndex = 0;
@@ -194,7 +196,6 @@ function movePlayer(delta) {
   syncState.isMoving = true;
   pushTrail(previous);
 
-  // Dot Pad is updated immediately using the same logical step as the web character.
   renderScene();
 
   addStepEffect(previous.left, previous.top);
@@ -259,8 +260,8 @@ function applyAnimationState() {
 function addStepEffect(left, top) {
   const effect = document.createElement('div');
   effect.className = 'step-effect';
-  effect.style.left = `${left + 26}px`;
-  effect.style.top = `${top + 56}px`;
+  effect.style.left = `${left + 24}px`;
+  effect.style.top = `${top + 38}px`;
   gameScreen.appendChild(effect);
   window.setTimeout(() => effect.remove(), 560);
 }
@@ -270,8 +271,8 @@ function addReactionEffect(type = 'spark') {
   const effect = document.createElement('div');
   effect.className = `reaction-effect ${type}`;
   effect.textContent = type === 'heart' ? '♥' : type === 'blocked' ? '!' : '✦';
-  effect.style.left = `${step.left + 30}px`;
-  effect.style.top = `${step.top - 22}px`;
+  effect.style.left = `${step.left + 24}px`;
+  effect.style.top = `${step.top - 18}px`;
   gameScreen.appendChild(effect);
   window.setTimeout(() => effect.remove(), 900);
 }
@@ -295,8 +296,8 @@ function getFollowCompanion(index, fallback) {
   const trailIndex = (index + 1) * 2;
   const follow = syncState.trail[trailIndex];
   if (!follow) return fallback;
-  const offsetX = -38 - index * 8;
-  const offsetY = 34 + (index % 2) * -26;
+  const offsetX = -32 - index * 7;
+  const offsetY = 28 + (index % 2) * -20;
   return [follow.left + offsetX, follow.top + offsetY];
 }
 
@@ -404,8 +405,7 @@ function drawHeart(m, x, y, v = 4) {
 }
 function createTactileMatrix(sceneId, step = PLAYER_PATH[playerStep]) {
   const m = blankMatrix();
-  // Tactile-safe conversion: keep path, player, previous ghost, Dotlings, Lumi, mission object, and one context tree only.
-  line(m, 10, 33, 50, 33, 1, true);
+  line(m, 9, 34, 47, 32, 1, true);
   drawTree(m, 10, 12, 1);
   if (syncState.isMoving) {
     const previous = PLAYER_PATH[syncState.previousStep];
@@ -413,10 +413,10 @@ function createTactileMatrix(sceneId, step = PLAYER_PATH[playerStep]) {
   }
   drawPlayer(m, step.dot[0], step.dot[1]);
   syncState.trail.slice(2, 6).forEach((trail, index) => drawDotling(m, trail.dot[0] - 2 - index * 2, trail.dot[1] + 1));
-  drawLumi(m, 45, 27, 4);
-  drawStar(m, 45, 12, step.nearLumi ? 4 : 2);
-  if (step.nearLumi) rect(m, 39, 18, 13, 17, 2);
-  if (greetedLumi) drawHeart(m, 49, 7, 4);
+  drawLumi(m, 47, 27, 4);
+  drawStar(m, 48, 13, step.nearLumi ? 4 : 2);
+  if (step.nearLumi) rect(m, 41, 19, 13, 16, 2);
+  if (greetedLumi) drawHeart(m, 50, 7, 4);
   return m;
 }
 function drawPlayerGhost(m, x, y) { for (let yy = -2; yy <= 2; yy += 1) for (let xx = -2; xx <= 2; xx += 1) if ((xx + yy) % 2 === 0) point(m, x + xx, y + yy, 2); }
