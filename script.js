@@ -27,33 +27,53 @@ const SCENES = [
     id: 'entrance',
     name: '숲속 마을 입구',
     title: '숲속 마을 입구',
+    sessionTitle: 'SESSION 00 · 숲속 마을 입구',
     message: '루미에게 다가가 인사를 나눠보세요.',
     guide: '기능키 2(선택/다음)를 누르면 대화가 시작됩니다.',
-    plain: '중앙 아래에 플레이어가 있고 오른쪽 위에 루미가 있습니다. 왼쪽 위에는 집, 아래쪽에는 길, 오른쪽에는 물가가 있습니다.'
+    speech: '안녕! 나는 루미야.<br>이 마을에 온 걸 환영해!',
+    overlayStep: '□ 루미에게 다가가기',
+    plain: '중앙 아래에 플레이어가 있고 오른쪽 위에 루미가 있습니다. 왼쪽 위에는 집, 아래쪽에는 길, 오른쪽에는 물가가 있습니다.',
+    player: { left: '335px', top: '260px' },
+    lumi: { left: '420px', top: '265px' }
   },
   {
     id: 'path',
     name: '흙길과 표지판',
     title: '흙길과 표지판',
+    sessionTitle: 'SESSION 00 · 흙길과 표지판',
     message: '흙길을 따라 루미가 있는 광장으로 이동합니다.',
     guide: '다음 이동 패닝키로 광장 쪽을 살펴보세요.',
-    plain: '화면 아래쪽에 점선 길이 이어지고, 중앙에는 플레이어가 있습니다. 왼쪽에는 표지판, 오른쪽에는 미션 오브젝트가 있습니다.'
+    speech: '표지판을 따라오면<br>루미가 있는 곳으로 갈 수 있어!',
+    overlayStep: '□ 표지판 방향 확인',
+    plain: '화면 아래쪽에 점선 길이 이어지고, 중앙에는 플레이어가 있습니다. 왼쪽에는 표지판, 오른쪽에는 미션 오브젝트가 있습니다.',
+    player: { left: '285px', top: '265px' },
+    lumi: { left: '420px', top: '265px' }
   },
   {
     id: 'lumi',
     name: '루미 앞',
     title: '루미와 첫 인사',
+    sessionTitle: 'SESSION 01 · 루미와 첫 인사',
     message: '루미가 바로 앞에 있어요. 인사를 시작할 수 있습니다.',
     guide: '기능키 2를 눌러 루미와 대화하세요.',
-    plain: '왼쪽 아래에 플레이어가 있고 오른쪽 아래에 루미가 있습니다. 두 캐릭터 사이에는 충분한 여백이 있습니다. 위쪽에는 미션 별표가 있습니다.'
+    speech: '안녕! 나는 루미야.<br>기능키 2를 누르면 대화가 시작돼!',
+    overlayStep: '□ 루미와 인사하기',
+    plain: '왼쪽 아래에 플레이어가 있고 오른쪽 아래에 루미가 있습니다. 두 캐릭터 사이에는 충분한 여백이 있습니다. 위쪽에는 미션 별표가 있습니다.',
+    player: { left: '340px', top: '268px' },
+    lumi: { left: '435px', top: '272px' }
   },
   {
     id: 'bridge',
     name: '나무다리',
     title: '강가의 나무다리',
+    sessionTitle: 'SESSION 00 · 강가의 나무다리',
     message: '강 위의 나무다리가 촉각 그래픽으로 출력됩니다.',
     guide: '기능키 4로 주변 설명을 들어보세요.',
-    plain: '오른쪽에는 세로 물결 패턴의 물가가 있고, 가운데에는 나무다리가 있습니다. 플레이어는 다리 왼쪽에 있습니다.'
+    speech: '저 다리를 건너면<br>새로운 숲길이 나와!',
+    overlayStep: '□ 다리 방향 확인',
+    plain: '오른쪽에는 세로 물결 패턴의 물가가 있고, 가운데에는 나무다리가 있습니다. 플레이어는 다리 왼쪽에 있습니다.',
+    player: { left: '515px', top: '260px' },
+    lumi: { left: '420px', top: '265px' }
   }
 ];
 
@@ -66,6 +86,7 @@ let dotCells = [];
 let lastDtmsPage = null;
 
 const dotGrid = document.getElementById('dotGrid');
+const gameScreen = document.getElementById('gameScreen');
 const guideMessage = document.getElementById('guideMessage');
 const nextGuide = document.getElementById('nextGuide');
 const topLocation = document.getElementById('topLocation');
@@ -88,6 +109,8 @@ const byteCount = document.getElementById('byteCount');
 const hexCount = document.getElementById('hexCount');
 const hexPreview = document.getElementById('hexPreview');
 const plainTextPreview = document.getElementById('plainTextPreview');
+const sessionTitleCard = document.getElementById('sessionTitleCard');
+const missionOverlayStep = document.getElementById('missionOverlayStep');
 
 function init() {
   buildDotGrid();
@@ -141,10 +164,10 @@ function handleDotPadAction(action) {
   if (action === ACTIONS.INTERACT_OR_NEXT) {
     progress = Math.min(100, progress + 18);
     items = Math.min(20, items + 1);
+    sceneIndex = 2;
     setMessage('루미와 대화를 시작했어요!', 'MISSION 01 진행률이 올라가고 촉각 출력에 루미 위치가 강조됩니다.');
     speechBubble.innerHTML = '반가워! 이제 함께<br>숲속 마을을 탐험하자!';
     actionChip.textContent = 'F2 대화 완료';
-    sceneIndex = Math.max(sceneIndex, 2);
     playSound('clear');
   }
   if (action === ACTIONS.READ_CURRENT) {
@@ -168,9 +191,12 @@ function handleDotPadAction(action) {
 
 function renderScene() {
   const scene = SCENES[sceneIndex];
+  gameScreen.dataset.session = scene.id;
   topLocation.textContent = scene.name;
   tactileScene.textContent = scene.name;
   sceneBadge.textContent = scene.name;
+  sessionTitleCard.textContent = scene.sessionTitle;
+  missionOverlayStep.textContent = scene.overlayStep;
   itemCount.textContent = String(items).padStart(2, '0');
   sideItems.textContent = String(items).padStart(2, '0');
   progressBar.style.width = `${progress}%`;
@@ -179,10 +205,14 @@ function renderScene() {
   expText.textContent = `EXP ${Math.min(100, progress + 10)}%`;
   tactileState.textContent = scene.id === 'lumi' ? 'Lumi Detected ✅' : 'DTMS page ready ✅';
   tactilePosition.textContent = scene.id === 'bridge' ? '좌측 다리 입구' : scene.id === 'lumi' ? '좌측 하단' : '중앙 하단';
-  if (guideMessage.textContent.trim() === '') setMessage(scene.message, scene.guide);
+  speechBubble.innerHTML = scene.speech;
 
-  playerSprite.style.left = scene.id === 'bridge' ? '515px' : scene.id === 'lumi' ? '365px' : scene.id === 'path' ? '285px' : '335px';
-  lumiSprite.style.left = scene.id === 'lumi' ? '445px' : '420px';
+  playerSprite.style.left = scene.player.left;
+  playerSprite.style.top = scene.player.top;
+  lumiSprite.style.left = scene.lumi.left;
+  lumiSprite.style.top = scene.lumi.top;
+
+  if (guideMessage.textContent.trim() === '') setMessage(scene.message, scene.guide);
 
   const matrix = createTactileMatrix(scene.id);
   renderMatrix(matrix);
@@ -267,7 +297,6 @@ function block(m, x, y, w, h, v = 1, checker = false) {
 }
 
 function drawHouse(m, x, y, v = 1) {
-  // 18 x 17 footprint. Leave at least 1 pin margin around other objects.
   line(m, x, y + 7, x + 9, y, v);
   line(m, x + 9, y, x + 18, y + 7, v);
   rect(m, x + 2, y + 7, 15, 10, v);
@@ -275,7 +304,6 @@ function drawHouse(m, x, y, v = 1) {
 }
 
 function drawTree(m, x, y, v = 1) {
-  // Tactile tree: round canopy + vertical trunk, not decorative leaves.
   for (let yy = -4; yy <= 4; yy += 1) {
     for (let xx = -5; xx <= 5; xx += 1) {
       if (xx * xx + yy * yy <= 22) point(m, x + xx, y + yy, v);
@@ -285,7 +313,6 @@ function drawTree(m, x, y, v = 1) {
 }
 
 function drawLumi(m, x, y, v = 4) {
-  // NPC marker: rabbit-like silhouette, kept separate from player.
   line(m, x - 3, y - 8, x - 3, y - 3, v);
   line(m, x + 3, y - 8, x + 3, y - 3, v);
   rect(m, x - 5, y - 3, 11, 9, v);
@@ -295,14 +322,12 @@ function drawLumi(m, x, y, v = 4) {
 }
 
 function drawPlayer(m, x, y) {
-  // Player: compact 5 x 5 emphasis block.
   for (let yy = -2; yy <= 2; yy += 1) {
     for (let xx = -2; xx <= 2; xx += 1) point(m, x + xx, y + yy, 3);
   }
 }
 
 function drawWater(m, x, y, h, v = 1) {
-  // Water: repeated wave pattern, vertical and clearly separated.
   for (let yy = 0; yy < h; yy += 1) {
     point(m, x + (yy % 4), y + yy, v);
     point(m, x + 5 + ((yy + 2) % 4), y + yy, v);
@@ -336,7 +361,6 @@ function drawObstacle(m, x, y, v = 2) {
 
 function createTactileMatrix(sceneId) {
   const m = blankMatrix();
-
   // Core rule: do not copy visual pixel art. Extract only tactile-readable structure.
   // Keep at least 1 pin of whitespace between meaningful objects where possible.
   if (sceneId === 'entrance') {
@@ -349,7 +373,6 @@ function createTactileMatrix(sceneId) {
     drawStar(m, 43, 12, 2);
     return m;
   }
-
   if (sceneId === 'path') {
     line(m, 5, 29, 55, 29, 1, true);
     line(m, 8, 33, 50, 33, 1, true);
@@ -359,7 +382,6 @@ function createTactileMatrix(sceneId) {
     drawStar(m, 42, 16, 4);
     return m;
   }
-
   if (sceneId === 'lumi') {
     line(m, 10, 31, 50, 31, 1, true);
     drawPlayer(m, 22, 31);
@@ -369,7 +391,6 @@ function createTactileMatrix(sceneId) {
     drawTree(m, 12, 12, 1);
     return m;
   }
-
   if (sceneId === 'bridge') {
     drawWater(m, 50, 4, 32, 1);
     drawBridge(m, 35, 26, 2);
@@ -378,7 +399,6 @@ function createTactileMatrix(sceneId) {
     line(m, 5, 31, 30, 31, 1, true);
     return m;
   }
-
   return createTactileMatrix('entrance');
 }
 
@@ -394,7 +414,6 @@ function sendToDotPad(matrix, scene = SCENES[sceneIndex]) {
       textPlain: scene.plain
     });
   }
-
   const binaryMatrix = matrix.map(row => row.map(value => value > 0 ? 1 : 0));
   console.log('60x40 matrix', binaryMatrix);
   return { page: { text: { plain: scene.plain }, items: [{ graphic: { byteLength: 300, hexLength: 600, data: '' } }] } };
