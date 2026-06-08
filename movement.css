@@ -1,20 +1,23 @@
 /* Character movement layer for SESSION 01 · 루미와 첫 인사 */
 .game-screen[data-session="lumi"] {
-  --player-left: 260px;
-  --player-top: 372px;
-  --companion-1-left: 218px;
-  --companion-1-top: 432px;
-  --companion-2-left: 238px;
-  --companion-2-top: 392px;
-  --companion-3-left: 188px;
-  --companion-3-top: 402px;
-  --companion-4-left: 302px;
-  --companion-4-top: 432px;
+  --player-left: 126px;
+  --player-top: 522px;
+  --companion-1-left: 82px;
+  --companion-1-top: 576px;
+  --companion-2-left: 102px;
+  --companion-2-top: 548px;
+  --companion-3-left: 62px;
+  --companion-3-top: 552px;
+  --companion-4-left: 148px;
+  --companion-4-top: 574px;
+  --visual-character-scale: .72;
+  --visual-companion-scale: .66;
 }
 
 .game-screen[data-session="lumi"] .player {
   left: var(--player-left) !important;
   top: var(--player-top) !important;
+  transform-origin: center bottom;
   transition:
     left .22s cubic-bezier(.2,.82,.2,1),
     top .22s cubic-bezier(.2,.82,.2,1),
@@ -29,42 +32,44 @@
 
 .game-screen[data-session="lumi"] .player.is-moving {
   animation: playerWalk .22s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 14px rgba(255, 216, 77, .92));
+  filter: drop-shadow(0 0 10px rgba(255, 216, 77, .82));
 }
 
 .game-screen[data-session="lumi"] .player.is-interacting {
   animation: playerInteract .52s ease-in-out;
-  filter: drop-shadow(0 0 14px rgba(117, 240, 207, .92));
+  filter: drop-shadow(0 0 10px rgba(117, 240, 207, .82));
 }
 
 .game-screen[data-session="lumi"] .player.is-blocked {
   animation: playerBlocked .28s ease-in-out;
-  filter: drop-shadow(0 0 12px rgba(255, 116, 116, .9));
+  filter: drop-shadow(0 0 10px rgba(255, 116, 116, .84));
 }
 
 .game-screen[data-session="lumi"] .player.is-success {
   animation: playerSuccess .9s ease-in-out;
-  filter: drop-shadow(0 0 18px rgba(255, 224, 120, .95));
+  filter: drop-shadow(0 0 14px rgba(255, 224, 120, .9));
 }
 
 .game-screen[data-session="lumi"] .player.face-left {
-  transform: scaleX(-1);
+  transform: scaleX(-1) scale(var(--visual-character-scale));
 }
 
 .game-screen[data-session="lumi"] .player.face-right {
-  transform: scaleX(1);
+  transform: scaleX(1) scale(var(--visual-character-scale));
 }
 
 .game-screen[data-session="lumi"] .lumi {
-  left: 510px !important;
-  top: 360px !important;
+  left: 476px !important;
+  top: 500px !important;
+  transform: scale(.82);
+  transform-origin: center bottom;
 }
 
 .game-screen[data-session="lumi"] .focus-ring {
-  left: calc(var(--player-left) - 12px) !important;
-  top: calc(var(--player-top) - 14px) !important;
-  width: 86px !important;
-  height: 102px !important;
+  left: calc(var(--player-left) - 8px) !important;
+  top: calc(var(--player-top) - 10px) !important;
+  width: 62px !important;
+  height: 78px !important;
   transition: left .22s cubic-bezier(.2,.82,.2,1), top .22s cubic-bezier(.2,.82,.2,1);
 }
 
@@ -78,6 +83,7 @@
     transform .18s ease,
     filter .18s ease;
   will-change: left, top, transform;
+  transform-origin: center bottom;
   animation: dotlingIdle 1.5s ease-in-out infinite alternate;
 }
 
@@ -110,16 +116,17 @@
 }
 
 .game-screen[data-session="lumi"] .speech-bubble {
-  left: 600px !important;
-  top: 238px !important;
-  width: 306px !important;
+  left: 560px !important;
+  top: 404px !important;
+  width: 260px !important;
 }
 
 .game-screen[data-session="lumi"] .path {
-  left: 120px !important;
-  bottom: 130px !important;
-  width: 560px !important;
-  height: 78px !important;
+  left: 72px !important;
+  bottom: 76px !important;
+  width: 500px !important;
+  height: 58px !important;
+  opacity: .32;
 }
 
 .game-screen[data-session="lumi"] .session-title-card {
@@ -134,7 +141,7 @@
 .game-screen[data-session="lumi"] .near-lumi-hint {
   position: absolute;
   left: 408px;
-  top: 332px;
+  top: 464px;
   z-index: 18;
   color: #1b1330;
   background: #75f0cf;
@@ -146,12 +153,12 @@
 
 .step-effect {
   position: absolute;
-  width: 42px;
-  height: 16px;
+  width: 34px;
+  height: 12px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 238, 164, .72), rgba(255, 238, 164, 0) 72%);
-  box-shadow: 0 0 22px rgba(255, 238, 164, .62);
+  background: radial-gradient(circle, rgba(255, 238, 164, .62), rgba(255, 238, 164, 0) 72%);
+  box-shadow: 0 0 16px rgba(255, 238, 164, .48);
   z-index: 17;
   pointer-events: none;
   animation: stepFade .56s ease-out forwards;
@@ -163,15 +170,15 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   color: #fff2a3;
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 1000;
-  text-shadow: 0 0 18px rgba(255, 242, 163, .9), 4px 4px 0 #0008;
+  text-shadow: 0 0 14px rgba(255, 242, 163, .82), 3px 3px 0 #0008;
   animation: reactionPop .9s ease-out forwards;
 }
 
 .reaction-effect.heart {
   color: #ffb8c7;
-  text-shadow: 0 0 18px rgba(255, 184, 199, .9), 4px 4px 0 #0008;
+  text-shadow: 0 0 14px rgba(255, 184, 199, .82), 3px 3px 0 #0008;
 }
 
 .reaction-effect.blocked {
@@ -180,53 +187,53 @@
 
 @keyframes playerIdle {
   from { margin-top: 0; }
-  to { margin-top: -4px; }
+  to { margin-top: -3px; }
 }
 
 @keyframes playerWalk {
-  from { margin-top: 0; transform: translateY(0) scale(1.02); }
-  to { margin-top: -10px; transform: translateY(-3px) scale(1.08); }
+  from { margin-top: 0; transform: translateY(0) scale(var(--visual-character-scale)); }
+  to { margin-top: -7px; transform: translateY(-2px) scale(calc(var(--visual-character-scale) + .04)); }
 }
 
 @keyframes playerInteract {
-  0% { margin-top: 0; transform: scale(1); }
-  35% { margin-top: -14px; transform: scale(1.1); }
-  70% { margin-top: 0; transform: scale(.98); }
-  100% { margin-top: 0; transform: scale(1); }
+  0% { margin-top: 0; transform: scale(var(--visual-character-scale)); }
+  35% { margin-top: -10px; transform: scale(calc(var(--visual-character-scale) + .08)); }
+  70% { margin-top: 0; transform: scale(calc(var(--visual-character-scale) - .02)); }
+  100% { margin-top: 0; transform: scale(var(--visual-character-scale)); }
 }
 
 @keyframes playerBlocked {
   0% { margin-left: 0; }
-  25% { margin-left: -9px; }
-  50% { margin-left: 9px; }
-  75% { margin-left: -5px; }
+  25% { margin-left: -7px; }
+  50% { margin-left: 7px; }
+  75% { margin-left: -4px; }
   100% { margin-left: 0; }
 }
 
 @keyframes playerSuccess {
-  0% { margin-top: 0; transform: scale(1); }
-  30% { margin-top: -18px; transform: scale(1.12); }
-  60% { margin-top: -4px; transform: scale(1.06); }
-  100% { margin-top: 0; transform: scale(1); }
+  0% { margin-top: 0; transform: scale(var(--visual-character-scale)); }
+  30% { margin-top: -14px; transform: scale(calc(var(--visual-character-scale) + .1)); }
+  60% { margin-top: -3px; transform: scale(calc(var(--visual-character-scale) + .04)); }
+  100% { margin-top: 0; transform: scale(var(--visual-character-scale)); }
 }
 
 @keyframes dotlingIdle {
-  from { transform: translateY(0) scale(1); }
-  to { transform: translateY(-4px) scale(1.04); }
+  from { transform: translateY(0) scale(var(--visual-companion-scale)); }
+  to { transform: translateY(-3px) scale(calc(var(--visual-companion-scale) + .03)); }
 }
 
 @keyframes dotlingFollow {
-  from { transform: translateY(0) scale(.98); filter: drop-shadow(0 0 6px rgba(255, 216, 77, .2)); }
-  to { transform: translateY(-8px) scale(1.08); filter: drop-shadow(0 0 12px rgba(255, 216, 77, .7)); }
+  from { transform: translateY(0) scale(var(--visual-companion-scale)); filter: drop-shadow(0 0 5px rgba(255, 216, 77, .18)); }
+  to { transform: translateY(-6px) scale(calc(var(--visual-companion-scale) + .06)); filter: drop-shadow(0 0 9px rgba(255, 216, 77, .58)); }
 }
 
 @keyframes stepFade {
-  from { opacity: .9; transform: translate(-50%, -50%) scale(.6); }
-  to { opacity: 0; transform: translate(-50%, -50%) scale(1.9); }
+  from { opacity: .78; transform: translate(-50%, -50%) scale(.55); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(1.65); }
 }
 
 @keyframes reactionPop {
-  0% { opacity: 0; transform: translate(-50%, 0) scale(.4); }
-  20% { opacity: 1; transform: translate(-50%, -60%) scale(1.25); }
-  100% { opacity: 0; transform: translate(-50%, -150%) scale(.9); }
+  0% { opacity: 0; transform: translate(-50%, 0) scale(.35); }
+  20% { opacity: 1; transform: translate(-50%, -52%) scale(1.12); }
+  100% { opacity: 0; transform: translate(-50%, -130%) scale(.82); }
 }
