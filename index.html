@@ -6,6 +6,7 @@
   <title>Dot Village Arcade</title>
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./dtms.css" />
+  <link rel="stylesheet" href="./visual-polish.css" />
 </head>
 <body>
   <div class="app">
@@ -36,31 +37,46 @@
     <main class="dashboard">
       <section class="game-panel panel glow" aria-label="Visual Game Screen">
         <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">숲속 마을 입구</span></div>
-        <div class="game-screen" id="gameScreen" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+        <div class="game-screen rich-scene" id="gameScreen" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
           <div class="pixel-sky"></div>
+          <div class="sunset-glow"></div>
+          <div class="cloud cloud-a"></div><div class="cloud cloud-b"></div>
+          <div class="far-hills hill-a"></div><div class="far-hills hill-b"></div>
+          <div class="forest-backdrop"></div>
           <div class="tile-map"></div>
+          <div class="grass-detail"></div>
           <div class="river"></div>
+          <div class="water-sparkle s1"></div><div class="water-sparkle s2"></div><div class="water-sparkle s3"></div>
+          <div class="pond"></div>
+          <div class="stepping-stones"><i></i><i></i><i></i><i></i></div>
           <div class="bridge"></div>
-          <div class="cabin"><span class="roof"></span><span class="door"></span><span class="window"></span></div>
-          <div class="tree tree-a"><span></span></div><div class="tree tree-b"><span></span></div><div class="tree tree-c"><span></span></div><div class="tree tree-d"><span></span></div>
-          <div class="fence fence-a"></div><div class="fence fence-b"></div>
-          <div class="sign sign-a">!</div><div class="sign sign-b">MAP</div>
-          <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div>
-          <div class="flower flower-a"></div><div class="flower flower-b"></div><div class="flower flower-c"></div><div class="flower flower-d"></div>
-          <div class="mushroom mushroom-a"></div><div class="mushroom mushroom-b"></div>
+          <div class="cabin"><span class="roof"></span><span class="chimney"></span><span class="door"></span><span class="window"></span><span class="window w2"></span><span class="lantern"></span></div>
+          <div class="tree tree-a"><span></span></div><div class="tree tree-b"><span></span></div><div class="tree tree-c"><span></span></div><div class="tree tree-d"><span></span></div><div class="tree tree-e"><span></span></div><div class="tree tree-f"><span></span></div>
+          <div class="berry-tree berry-tree-a"><i></i><i></i><i></i></div><div class="berry-tree berry-tree-b"><i></i><i></i><i></i></div>
+          <div class="fence fence-a"></div><div class="fence fence-b"></div><div class="fence fence-c"></div>
+          <div class="sign sign-a">!</div><div class="sign sign-b">MAP</div><div class="quest-board">QUEST</div>
+          <div class="lamp lamp-a"></div><div class="lamp lamp-b"></div>
+          <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div><div class="rock rock-d"></div><div class="rock rock-e"></div>
+          <div class="flower flower-a"></div><div class="flower flower-b"></div><div class="flower flower-c"></div><div class="flower flower-d"></div><div class="flower flower-e"></div><div class="flower flower-f"></div>
+          <div class="flower-bed bed-a"></div><div class="flower-bed bed-b"></div>
+          <div class="mushroom mushroom-a"></div><div class="mushroom mushroom-b"></div><div class="mushroom mushroom-c"></div>
+          <div class="crate crate-a"></div><div class="crate crate-b"></div>
           <div class="chest"></div>
           <div class="path"></div>
+          <div class="path-stones"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="butterfly bfly-a"></div><div class="butterfly bfly-b"></div>
+          <div class="firefly f-a"></div><div class="firefly f-b"></div><div class="firefly f-c"></div>
           <div class="mini-map-overlay"><b>MINI MAP</b><div class="map-grid"><i></i><i></i><i class="target"></i><i></i><i class="player"></i><i></i><i></i><i></i><i></i></div></div>
           <div class="mission-overlay"><b>MISSION 01</b><strong>루미와 첫 인사</strong><span>□ 루미에게 다가가기</span></div>
-          <div class="player" id="playerSprite"><span class="ears"></span><span class="body"></span></div>
-          <div class="companion c1"></div><div class="companion c2"></div><div class="companion c3"></div>
+          <div class="player" id="playerSprite"><span class="ears"></span><span class="face-mark"></span><span class="body"></span></div>
+          <div class="companion c1"></div><div class="companion c2"></div><div class="companion c3"></div><div class="companion c4"></div>
           <div class="lumi" id="lumiSprite"><span></span></div>
           <div class="focus-ring"></div>
           <div class="speech-bubble" id="speechBubble">안녕! 나는 루미야.<br>이 마을에 온 걸 환영해!</div>
           <div class="game-hud">
             <div class="hearts">♥ ♥ ♥</div>
             <div class="level"><b>LV.01</b><span><i id="expBar"></i></span><em id="expText">EXP 25%</em></div>
-            <div class="inventory"><button>🍓<small>3</small></button><button>🪵<small>2</small></button><button>🌼<small>1</small></button><button></button></div>
+            <div class="inventory"><button>🍓<small>3</small></button><button>🪵<small>2</small></button><button>🌼<small>1</small></button><button>🍄<small>0</small></button></div>
             <button class="action-chip" id="actionChip">F2 대화하기</button>
           </div>
         </div>
