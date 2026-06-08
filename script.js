@@ -1,5 +1,7 @@
 const DOT_WIDTH = 60;
 const DOT_HEIGHT = 40;
+const MOVE_DURATION = 220;
+const FOLLOW_DELAY = 95;
 
 const ACTIONS = {
   PREVIOUS: 'PREVIOUS',
@@ -19,7 +21,8 @@ const keyboardToDotPadAction = {
   '3': ACTIONS.READ_MISSION,
   '4': ACTIONS.READ_AROUND,
   '5': ACTIONS.HELP_OR_MENU,
-  Enter: ACTIONS.INTERACT_OR_NEXT
+  Enter: ACTIONS.INTERACT_OR_NEXT,
+  ' ': ACTIONS.INTERACT_OR_NEXT
 };
 
 const SCENES = [
@@ -37,10 +40,10 @@ const SCENES = [
 ];
 
 const PLAYER_PATH = [
-  { label: '마을 입구', left: 250, top: 372, dot: [16, 31], companion: [[210,432],[232,394],[184,404],[300,432]] },
-  { label: '흙길 중앙', left: 318, top: 372, dot: [23, 31], companion: [[270,430],[288,398],[236,410],[360,432]] },
-  { label: '루미 앞 길', left: 386, top: 372, dot: [30, 31], companion: [[334,430],[358,402],[306,414],[420,432]] },
-  { label: '루미 근처', left: 454, top: 372, dot: [36, 31], companion: [[404,430],[426,404],[374,414],[486,432]], nearLumi: true }
+  { label: '마을 입구', left: 250, top: 372, dot: [16, 31], companion: [[210,432],[232,394],[184,404],[300,432]], direction: 'right' },
+  { label: '흙길 중앙', left: 318, top: 372, dot: [23, 31], companion: [[270,430],[288,398],[236,410],[360,432]], direction: 'right' },
+  { label: '루미 앞 길', left: 386, top: 372, dot: [30, 31], companion: [[334,430],[358,402],[306,414],[420,432]], direction: 'right' },
+  { label: '루미 근처', left: 454, top: 372, dot: [36, 31], companion: [[404,430],[426,404],[374,414],[486,432]], nearLumi: true, direction: 'right' }
 ];
 
 let sceneIndex = 0;
@@ -52,6 +55,15 @@ let soundEnabled = false;
 let audioContext = null;
 let dotCells = [];
 let lastDtmsPage = null;
+
+const syncState = {
+  previousStep: 0,
+  currentStep: 0,
+  direction: 'right',
+  animState: 'idle',
+  isMoving: false,
+  trail: []
+};
 
 const dotGrid = document.getElementById('dotGrid');
 const gameScreen = document.getElementById('gameScreen');
@@ -82,6 +94,7 @@ const missionOverlayStep = document.getElementById('missionOverlayStep');
 function init() {
   buildDotGrid();
   bindEvents();
+  seedTrail();
   setMessage('좌우 패닝키로 루미에게 다가가 보세요.', '루미 근처에 도착하면 기능키 2로 대화를 시작할 수 있습니다.');
   renderScene();
 }
@@ -151,40 +164,140 @@ function handleDotPadAction(action) {
 }
 
 function movePlayer(delta) {
+  if (syncState.isMoving) return;
+
   const nextStep = Math.max(0, Math.min(PLAYER_PATH.length - 1, playerStep + delta));
   if (nextStep === playerStep) {
+    syncState.direction = delta < 0 ? 'left' : 'right';
+    syncState.animState = 'blocked';
+    applyAnimationState();
+    addReactionEffect('blocked');
+    window.setTimeout(() => {
+      syncState.animState = 'idle';
+      applyAnimationState();
+    }, 280);
+
     setMessage(delta < 0 ? '더 왼쪽으로는 이동할 수 없습니다.' : '루미가 바로 앞에 있습니다.', delta > 0 ? '기능키 2를 눌러 루미와 인사하세요.' : '오른쪽 패닝키로 루미에게 다가가세요.');
     playSound('select');
     return;
   }
+
+  const previousStep = playerStep;
+  const previous = PLAYER_PATH[previousStep];
   playerStep = nextStep;
   const step = PLAYER_PATH[playerStep];
+
+  syncState.previousStep = previousStep;
+  syncState.currentStep = playerStep;
+  syncState.direction = delta > 0 ? 'right' : 'left';
+  syncState.animState = 'walk';
+  syncState.isMoving = true;
+  pushTrail(previous);
+
+  // Dot Pad is updated immediately using the same logical step as the web character.
+  renderScene();
+
+  addStepEffect(previous.left, previous.top);
   setMessage(`${step.label}으로 이동했습니다.`, step.nearLumi ? '루미가 가까이에 있습니다. 기능키 2로 인사하세요.' : '오른쪽 패닝키를 누르면 루미에게 더 가까워집니다.');
   playSound('move');
-  animatePlayer();
-  renderScene();
+
+  window.setTimeout(() => {
+    syncState.animState = 'idle';
+    syncState.isMoving = false;
+    applyAnimationState();
+  }, MOVE_DURATION);
 }
 
 function talkToLumi() {
+  if (syncState.isMoving) return;
+
   if (!PLAYER_PATH[playerStep].nearLumi) {
+    syncState.animState = 'interact';
+    applyAnimationState();
+    addReactionEffect('spark');
     setMessage('아직 루미와 거리가 있습니다.', '오른쪽 패닝키로 루미 근처까지 이동한 뒤 기능키 2를 눌러주세요.');
     playSound('select');
+    window.setTimeout(() => {
+      syncState.animState = 'idle';
+      applyAnimationState();
+    }, 520);
     return;
   }
+
   greetedLumi = true;
   progress = Math.max(progress, 45);
   items = Math.max(items, 4);
+  syncState.animState = 'success';
+  applyAnimationState();
+  addReactionEffect('heart');
   speechBubble.innerHTML = '반가워! 이제 함께<br>숲속 마을을 탐험하자!';
   actionChip.textContent = 'F2 대화 완료';
   missionOverlayStep.textContent = '☑ 루미와 첫 인사 완료';
   setMessage('루미와 첫 인사를 나눴어요!', 'MISSION 01 진행률이 올라가고 Dot Pad 출력에 루미 위치가 강조됩니다.');
   playSound('clear');
   renderScene();
+
+  window.setTimeout(() => {
+    syncState.animState = 'idle';
+    applyAnimationState();
+  }, 900);
 }
 
-function animatePlayer() {
-  playerSprite.classList.add('is-moving');
-  window.setTimeout(() => playerSprite.classList.remove('is-moving'), 240);
+function applyAnimationState() {
+  if (!playerSprite) return;
+  playerSprite.classList.remove('is-moving', 'is-idle', 'is-interacting', 'is-blocked', 'is-success', 'face-left', 'face-right');
+  playerSprite.classList.add(`face-${syncState.direction}`);
+  if (syncState.animState === 'walk') playerSprite.classList.add('is-moving');
+  if (syncState.animState === 'idle') playerSprite.classList.add('is-idle');
+  if (syncState.animState === 'interact') playerSprite.classList.add('is-interacting');
+  if (syncState.animState === 'blocked') playerSprite.classList.add('is-blocked');
+  if (syncState.animState === 'success') playerSprite.classList.add('is-success');
+  gameScreen.dataset.motion = syncState.animState;
+  gameScreen.dataset.direction = syncState.direction;
+}
+
+function addStepEffect(left, top) {
+  const effect = document.createElement('div');
+  effect.className = 'step-effect';
+  effect.style.left = `${left + 26}px`;
+  effect.style.top = `${top + 56}px`;
+  gameScreen.appendChild(effect);
+  window.setTimeout(() => effect.remove(), 560);
+}
+
+function addReactionEffect(type = 'spark') {
+  const step = PLAYER_PATH[playerStep];
+  const effect = document.createElement('div');
+  effect.className = `reaction-effect ${type}`;
+  effect.textContent = type === 'heart' ? '♥' : type === 'blocked' ? '!' : '✦';
+  effect.style.left = `${step.left + 30}px`;
+  effect.style.top = `${step.top - 22}px`;
+  gameScreen.appendChild(effect);
+  window.setTimeout(() => effect.remove(), 900);
+}
+
+function seedTrail() {
+  syncState.trail = [];
+  for (let i = 0; i < 8; i += 1) pushTrail(PLAYER_PATH[0]);
+}
+
+function pushTrail(step) {
+  syncState.trail.unshift({
+    left: step.left,
+    top: step.top,
+    dot: [...step.dot],
+    companion: step.companion.map(pos => [...pos])
+  });
+  syncState.trail = syncState.trail.slice(0, 16);
+}
+
+function getFollowCompanion(index, fallback) {
+  const trailIndex = (index + 1) * 2;
+  const follow = syncState.trail[trailIndex];
+  if (!follow) return fallback;
+  const offsetX = -38 - index * 8;
+  const offsetY = 34 + (index % 2) * -26;
+  return [follow.left + offsetX, follow.top + offsetY];
 }
 
 function renderScene() {
@@ -202,15 +315,19 @@ function renderScene() {
   progressText.textContent = `${progress}%`;
   expBar.style.width = `${Math.min(100, progress + 10)}%`;
   expText.textContent = `EXP ${Math.min(100, progress + 10)}%`;
-  tactileState.textContent = step.nearLumi ? 'Lumi Detected ✅' : 'Player Moving ✅';
+  tactileState.textContent = step.nearLumi ? 'Lumi Detected ✅' : syncState.isMoving ? 'Synced Moving ✅' : 'Player Ready ✅';
   tactilePosition.textContent = step.label;
 
   gameScreen.style.setProperty('--player-left', `${step.left}px`);
   gameScreen.style.setProperty('--player-top', `${step.top}px`);
+
   step.companion.forEach((pos, index) => {
-    gameScreen.style.setProperty(`--companion-${index + 1}-left`, `${pos[0]}px`);
-    gameScreen.style.setProperty(`--companion-${index + 1}-top`, `${pos[1]}px`);
+    const followPos = getFollowCompanion(index, pos);
+    gameScreen.style.setProperty(`--companion-${index + 1}-left`, `${followPos[0]}px`);
+    gameScreen.style.setProperty(`--companion-${index + 1}-top`, `${followPos[1]}px`);
   });
+
+  applyAnimationState();
 
   const matrix = createTactileMatrix(scene.id, step);
   renderMatrix(matrix);
@@ -280,23 +397,44 @@ function drawHouse(m, x, y, v = 1) { line(m, x, y + 7, x + 9, y, v); line(m, x +
 function drawTree(m, x, y, v = 1) { for (let yy = -4; yy <= 4; yy += 1) for (let xx = -5; xx <= 5; xx += 1) if (xx * xx + yy * yy <= 22) point(m, x + xx, y + yy, v); line(m, x, y + 5, x, y + 12, v); }
 function drawLumi(m, x, y, v = 4) { line(m, x - 3, y - 8, x - 3, y - 3, v); line(m, x + 3, y - 8, x + 3, y - 3, v); rect(m, x - 5, y - 3, 11, 9, v); point(m, x - 2, y, v); point(m, x + 2, y, v); point(m, x, y + 4, v); }
 function drawPlayer(m, x, y) { for (let yy = -2; yy <= 2; yy += 1) for (let xx = -2; xx <= 2; xx += 1) point(m, x + xx, y + yy, 3); }
+function drawDotling(m, x, y) { block(m, x, y, 2, 2, 2); point(m, x + 1, y - 1, 2); }
 function drawStar(m, x, y, v = 2) { point(m, x, y - 3, v); point(m, x, y + 3, v); point(m, x - 3, y, v); point(m, x + 3, y, v); point(m, x, y, v); point(m, x - 2, y - 2, v); point(m, x + 2, y - 2, v); point(m, x - 2, y + 2, v); point(m, x + 2, y + 2, v); }
+function drawHeart(m, x, y, v = 4) {
+  [[0,0],[1,0],[3,0],[4,0],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]].forEach(([px, py]) => point(m, x + px, y + py, v));
+}
 function createTactileMatrix(sceneId, step = PLAYER_PATH[playerStep]) {
   const m = blankMatrix();
-  // Tactile-safe conversion: keep path, player, Lumi, mission object, and one context tree only.
+  // Tactile-safe conversion: keep path, player, previous ghost, Dotlings, Lumi, mission object, and one context tree only.
   line(m, 10, 33, 50, 33, 1, true);
   drawTree(m, 10, 12, 1);
+  if (syncState.isMoving) {
+    const previous = PLAYER_PATH[syncState.previousStep];
+    drawPlayerGhost(m, previous.dot[0], previous.dot[1]);
+  }
   drawPlayer(m, step.dot[0], step.dot[1]);
+  syncState.trail.slice(2, 6).forEach((trail, index) => drawDotling(m, trail.dot[0] - 2 - index * 2, trail.dot[1] + 1));
   drawLumi(m, 45, 27, 4);
   drawStar(m, 45, 12, step.nearLumi ? 4 : 2);
   if (step.nearLumi) rect(m, 39, 18, 13, 17, 2);
+  if (greetedLumi) drawHeart(m, 49, 7, 4);
   return m;
 }
+function drawPlayerGhost(m, x, y) { for (let yy = -2; yy <= 2; yy += 1) for (let xx = -2; xx <= 2; xx += 1) if ((xx + yy) % 2 === 0) point(m, x + xx, y + yy, 2); }
 function sendToDotPad(matrix, scene = SCENES[sceneIndex]) {
   if (window.DotPadBridge) return window.DotPadBridge.sendGraphic(matrix, { page: scene.page || playerStep + 1, title: scene.title, textPlain: scene.plain });
   const binaryMatrix = matrix.map(row => row.map(value => value > 0 ? 1 : 0));
   console.log('60x40 matrix', binaryMatrix);
-  return { page: { text: { plain: scene.plain }, items: [{ graphic: { byteLength: 300, hexLength: 600, data: '' } }] } };
+  return { page: { text: { plain: scene.plain }, items: [{ graphic: { byteLength: 300, hexLength: 600, data: matrixToHex(binaryMatrix) } }] } };
+}
+function matrixToHex(binaryMatrix) {
+  const bits = binaryMatrix.flat();
+  const bytes = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let byte = 0;
+    for (let b = 0; b < 8; b += 1) byte = (byte << 1) | (bits[i + b] || 0);
+    bytes.push(byte);
+  }
+  return bytes.map(value => value.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 function playSound(type) {
   if (!soundEnabled) return;
