@@ -15,12 +15,44 @@
 .game-screen[data-session="lumi"] .player {
   left: var(--player-left) !important;
   top: var(--player-top) !important;
-  transition: left .22s steps(4), top .22s steps(4), transform .12s steps(2), filter .12s steps(2);
+  transition:
+    left .22s cubic-bezier(.2,.82,.2,1),
+    top .22s cubic-bezier(.2,.82,.2,1),
+    transform .14s ease,
+    filter .14s ease;
+  will-change: left, top, transform;
+}
+
+.game-screen[data-session="lumi"] .player.is-idle {
+  animation: playerIdle 1.8s ease-in-out infinite alternate;
 }
 
 .game-screen[data-session="lumi"] .player.is-moving {
-  transform: translateY(-8px) scale(1.07);
-  filter: drop-shadow(0 0 12px rgba(255, 216, 77, .9));
+  animation: playerWalk .22s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 14px rgba(255, 216, 77, .92));
+}
+
+.game-screen[data-session="lumi"] .player.is-interacting {
+  animation: playerInteract .52s ease-in-out;
+  filter: drop-shadow(0 0 14px rgba(117, 240, 207, .92));
+}
+
+.game-screen[data-session="lumi"] .player.is-blocked {
+  animation: playerBlocked .28s ease-in-out;
+  filter: drop-shadow(0 0 12px rgba(255, 116, 116, .9));
+}
+
+.game-screen[data-session="lumi"] .player.is-success {
+  animation: playerSuccess .9s ease-in-out;
+  filter: drop-shadow(0 0 18px rgba(255, 224, 120, .95));
+}
+
+.game-screen[data-session="lumi"] .player.face-left {
+  transform: scaleX(-1);
+}
+
+.game-screen[data-session="lumi"] .player.face-right {
+  transform: scaleX(1);
 }
 
 .game-screen[data-session="lumi"] .lumi {
@@ -33,13 +65,49 @@
   top: calc(var(--player-top) - 14px) !important;
   width: 86px !important;
   height: 102px !important;
-  transition: left .22s steps(4), top .22s steps(4);
+  transition: left .22s cubic-bezier(.2,.82,.2,1), top .22s cubic-bezier(.2,.82,.2,1);
 }
 
-.game-screen[data-session="lumi"] .c1 { left: var(--companion-1-left) !important; top: var(--companion-1-top) !important; transition: left .25s steps(4), top .25s steps(4); }
-.game-screen[data-session="lumi"] .c2 { left: var(--companion-2-left) !important; top: var(--companion-2-top) !important; transition: left .28s steps(4), top .28s steps(4); }
-.game-screen[data-session="lumi"] .c3 { left: var(--companion-3-left) !important; top: var(--companion-3-top) !important; transition: left .30s steps(4), top .30s steps(4); }
-.game-screen[data-session="lumi"] .c4 { left: var(--companion-4-left) !important; top: var(--companion-4-top) !important; transition: left .32s steps(4), top .32s steps(4); }
+.game-screen[data-session="lumi"] .c1,
+.game-screen[data-session="lumi"] .c2,
+.game-screen[data-session="lumi"] .c3,
+.game-screen[data-session="lumi"] .c4 {
+  transition:
+    left .28s cubic-bezier(.2,.82,.2,1),
+    top .28s cubic-bezier(.2,.82,.2,1),
+    transform .18s ease,
+    filter .18s ease;
+  will-change: left, top, transform;
+  animation: dotlingIdle 1.5s ease-in-out infinite alternate;
+}
+
+.game-screen[data-session="lumi"][data-motion="walk"] .c1,
+.game-screen[data-session="lumi"][data-motion="walk"] .c2,
+.game-screen[data-session="lumi"][data-motion="walk"] .c3,
+.game-screen[data-session="lumi"][data-motion="walk"] .c4 {
+  animation: dotlingFollow .28s ease-in-out infinite alternate;
+}
+
+.game-screen[data-session="lumi"] .c1 {
+  left: var(--companion-1-left) !important;
+  top: var(--companion-1-top) !important;
+  transition-delay: .08s;
+}
+.game-screen[data-session="lumi"] .c2 {
+  left: var(--companion-2-left) !important;
+  top: var(--companion-2-top) !important;
+  transition-delay: .14s;
+}
+.game-screen[data-session="lumi"] .c3 {
+  left: var(--companion-3-left) !important;
+  top: var(--companion-3-top) !important;
+  transition-delay: .20s;
+}
+.game-screen[data-session="lumi"] .c4 {
+  left: var(--companion-4-left) !important;
+  top: var(--companion-4-top) !important;
+  transition-delay: .26s;
+}
 
 .game-screen[data-session="lumi"] .speech-bubble {
   left: 600px !important;
@@ -74,4 +142,91 @@
   padding: 6px 10px;
   font-weight: 1000;
   box-shadow: 4px 4px 0 #0008;
+}
+
+.step-effect {
+  position: absolute;
+  width: 42px;
+  height: 16px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 238, 164, .72), rgba(255, 238, 164, 0) 72%);
+  box-shadow: 0 0 22px rgba(255, 238, 164, .62);
+  z-index: 17;
+  pointer-events: none;
+  animation: stepFade .56s ease-out forwards;
+}
+
+.reaction-effect {
+  position: absolute;
+  z-index: 35;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: #fff2a3;
+  font-size: 34px;
+  font-weight: 1000;
+  text-shadow: 0 0 18px rgba(255, 242, 163, .9), 4px 4px 0 #0008;
+  animation: reactionPop .9s ease-out forwards;
+}
+
+.reaction-effect.heart {
+  color: #ffb8c7;
+  text-shadow: 0 0 18px rgba(255, 184, 199, .9), 4px 4px 0 #0008;
+}
+
+.reaction-effect.blocked {
+  color: #ffeb8d;
+}
+
+@keyframes playerIdle {
+  from { margin-top: 0; }
+  to { margin-top: -4px; }
+}
+
+@keyframes playerWalk {
+  from { margin-top: 0; transform: translateY(0) scale(1.02); }
+  to { margin-top: -10px; transform: translateY(-3px) scale(1.08); }
+}
+
+@keyframes playerInteract {
+  0% { margin-top: 0; transform: scale(1); }
+  35% { margin-top: -14px; transform: scale(1.1); }
+  70% { margin-top: 0; transform: scale(.98); }
+  100% { margin-top: 0; transform: scale(1); }
+}
+
+@keyframes playerBlocked {
+  0% { margin-left: 0; }
+  25% { margin-left: -9px; }
+  50% { margin-left: 9px; }
+  75% { margin-left: -5px; }
+  100% { margin-left: 0; }
+}
+
+@keyframes playerSuccess {
+  0% { margin-top: 0; transform: scale(1); }
+  30% { margin-top: -18px; transform: scale(1.12); }
+  60% { margin-top: -4px; transform: scale(1.06); }
+  100% { margin-top: 0; transform: scale(1); }
+}
+
+@keyframes dotlingIdle {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-4px) scale(1.04); }
+}
+
+@keyframes dotlingFollow {
+  from { transform: translateY(0) scale(.98); filter: drop-shadow(0 0 6px rgba(255, 216, 77, .2)); }
+  to { transform: translateY(-8px) scale(1.08); filter: drop-shadow(0 0 12px rgba(255, 216, 77, .7)); }
+}
+
+@keyframes stepFade {
+  from { opacity: .9; transform: translate(-50%, -50%) scale(.6); }
+  to { opacity: 0; transform: translate(-50%, -50%) scale(1.9); }
+}
+
+@keyframes reactionPop {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(.4); }
+  20% { opacity: 1; transform: translate(-50%, -60%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(.9); }
 }
