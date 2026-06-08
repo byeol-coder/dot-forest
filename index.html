@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dot Village Arcade · 닷 빌리지 아케이드</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app" data-state="intro">
+    <div class="pixel-stars" aria-hidden="true"></div>
+
+    <header class="arcade-header">
+      <p class="eyebrow">손끝으로 플레이하는 8비트 촉각 마을 어드벤처</p>
+      <h1 class="pixel-title">DOT VILLAGE ARCADE</h1>
+      <p class="subtitle">손끝으로 만나는 작은 촉각 마을</p>
+    </header>
+
+    <main class="main-layout">
+      <section class="device-zone" aria-label="Dot Pad 하드웨어 시뮬레이터">
+        <div class="arcade-shell">
+          <div class="device-top-label">DOT PAD · 60×40</div>
+
+          <section class="dot-screen-frame" aria-label="60×40 촉각 그래픽 화면">
+            <div class="screen-meta">
+              <span id="screenMode">INTRO</span>
+              <span id="screenHint">PRESS 기능키 2</span>
+            </div>
+            <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 촉각 그래픽 프리뷰"></div>
+          </section>
+
+          <section class="hardware-keys" aria-label="Dot Pad 실제 키 구조 기반 조작부">
+            <button class="triangle-key left-key pixel-button" type="button"
+              aria-label="좌측 이동키, 이전 장소로 이동" data-action="PREVIOUS">◀</button>
+
+            <div class="function-keys" aria-label="기능키 1부터 5">
+              <button class="function-key pixel-button" type="button" data-action="READ_CURRENT" aria-label="기능키 1 현재 위치">
+                <span>기능키 1</span><strong>현재 위치</strong>
+              </button>
+              <button class="function-key pixel-button primary" type="button" data-action="INTERACT_OR_NEXT" aria-label="기능키 2 선택, 인사, 다음">
+                <span>기능키 2</span><strong>선택/다음</strong>
+              </button>
+              <button class="function-key pixel-button" type="button" data-action="READ_MISSION" aria-label="기능키 3 미션 확인">
+                <span>기능키 3</span><strong>미션</strong>
+              </button>
+              <button class="function-key pixel-button" type="button" data-action="READ_AROUND" aria-label="기능키 4 주변 설명">
+                <span>기능키 4</span><strong>주변 설명</strong>
+              </button>
+              <button class="function-key pixel-button" type="button" data-action="HELP_OR_MENU" aria-label="기능키 5 도움말">
+                <span>기능키 5</span><strong>도움말</strong>
+              </button>
+            </div>
+
+            <button class="triangle-key right-key pixel-button" type="button"
+              aria-label="우측 이동키, 다음 장소로 이동" data-action="NEXT">▶</button>
+          </section>
+
+          <section class="braille-panel" aria-label="점자 안내 영역">
+            <div class="braille-dots" aria-hidden="true"></div>
+            <div class="braille-text" id="brailleMessage" aria-live="polite">
+              점이 켜졌어요<br>마을이 시작돼요
+            </div>
+          </section>
+        </div>
+
+        <div class="keyboard-help pixel-panel">
+          <strong>테스트 키</strong>
+          <span>← 이전</span>
+          <span>→ 다음</span>
+          <span>1~5 기능키</span>
+          <span>Enter = 기능키 2</span>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="lumi-card pixel-panel" aria-labelledby="lumiTitle">
+          <div class="lumi-avatar" aria-hidden="true">
+            <div class="ear left"></div>
+            <div class="ear right"></div>
+            <div class="face">•ᴗ•</div>
+          </div>
+          <div>
+            <h2 id="lumiTitle">루미</h2>
+            <p id="lumiSpeech" aria-live="polite">첫 번째 점이 깨어났어요. 기능키 2로 다음 장면을 열어볼까요?</p>
+          </div>
+        </section>
+
+        <section class="mission-card pixel-panel" aria-labelledby="missionTitle">
+          <div class="mission-banner" id="missionBanner">MISSION START</div>
+          <h2 id="missionTitle">MISSION 01 · 루미와 첫 인사</h2>
+          <p id="missionText">오프닝을 따라 마을이 깨어나는 모습을 확인해요.</p>
+          <p class="press-hint" id="pressHint">PRESS 기능키 2 TO START</p>
+        </section>
+
+        <section class="status-card pixel-panel" aria-labelledby="statusTitle">
+          <h2 id="statusTitle">현재 상태</h2>
+          <dl>
+            <div>
+              <dt>게임 상태</dt>
+              <dd id="stateLabel">INTRO</dd>
+            </div>
+            <div>
+              <dt>현재 장소</dt>
+              <dd id="placeLabel">첫 번째 점</dd>
+            </div>
+            <div>
+              <dt>Dot Pad</dt>
+              <dd>시뮬레이션 모드</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="log-panel pixel-panel" aria-labelledby="logTitle">
+          <h2 id="logTitle">안내 로그</h2>
+          <ol id="logList" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
