@@ -3,160 +3,115 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dot Village Arcade · 닷 빌리지 아케이드</title>
+  <title>Dot Village Arcade</title>
   <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./enhance.css" />
 </head>
 <body>
-  <div class="app" data-state="title">
-    <div class="pixel-stars" aria-hidden="true"></div>
-
-    <header class="arcade-header">
-      <p class="eyebrow">실시간 시각 게임 장면 ↔ 60×40 촉각 출력 변환</p>
-      <h1 class="pixel-title">DOT VILLAGE ARCADE</h1>
-      <p class="subtitle">8-bit tactile village adventure · 손끝으로 만나는 작은 촉각 마을</p>
-    </header>
-
-    <main class="main-layout">
-      <section class="device-zone" aria-label="게임 화면과 Dot Pad 하드웨어 시뮬레이터">
-        <div class="arcade-shell">
-          <div class="device-top-label">VISUAL GAME + DOT PAD · 60×40 LIVE OUTPUT</div>
-
-          <div class="screen-pair" aria-label="시각 게임 화면과 촉각 변환 화면 비교">
-            <section class="game-preview-frame" aria-label="8비트 시각 게임 화면">
-              <div class="screen-meta">
-                <span>VISUAL GAME SCREEN</span>
-                <span id="visualSceneName">TITLE</span>
-              </div>
-              <div id="visualGameScreen" class="visual-game-screen" role="img" aria-label="8비트 마을 게임 시각 화면">
-                <div class="visual-caption">PRESS 기능키 2 TO START</div>
-              </div>
-            </section>
-
-            <section class="dot-screen-frame" aria-label="60×40 촉각 그래픽 화면">
-              <div class="screen-meta">
-                <span id="screenMode">60×40 TACTILE OUTPUT</span>
-                <span id="screenHint" class="blink-text">PRESS 기능키 2</span>
-              </div>
-              <div class="tactile-labels" aria-label="촉각 출력 상태">
-                <span>Current Scene: <b id="tactileSceneLabel">Forest Village</b></span>
-                <span>Character: <b id="tactilePositionLabel">Center</b></span>
-                <span>Status: <b id="tactileStatusLabel">Mission Object Detected</b></span>
-              </div>
-              <div id="stageBanner" class="stage-banner">PRESS 기능키 2 TO START</div>
-              <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 촉각 그래픽 프리뷰"></div>
-            </section>
-          </div>
-
-          <section class="play-hud pixel-panel" aria-label="게임 플레이 HUD">
-            <div class="mini-map" aria-label="미니맵">
-              <strong>MINI MAP</strong>
-              <div class="mini-map-grid">
-                <span class="mini-node active" data-node="home"></span>
-                <span class="mini-node" data-node="path"></span>
-                <span class="mini-node" data-node="tree"></span>
-                <span class="mini-node" data-node="plaza"></span>
-                <span class="mini-node target" data-node="lumi"></span>
-                <span class="mini-node" data-node="flower"></span>
-                <span class="mini-node" data-node="bridge"></span>
-                <span class="mini-node" data-node="river"></span>
-              </div>
-            </div>
-            <div class="hud-card">
-              <span>현재 미션</span>
-              <strong id="hudMission">MISSION 01 · 루미와 첫 인사</strong>
-            </div>
-            <div class="hud-card">
-              <span>수집 아이템</span>
-              <strong id="hudItems">열매 0 · 꽃 0</strong>
-            </div>
-            <div class="hud-card">
-              <span>다음 행동</span>
-              <strong id="hudAction">기능키 2로 시작</strong>
-            </div>
-          </section>
-
-          <section class="hardware-keys" aria-label="Dot Pad 실제 키 구조 기반 조작부">
-            <button class="triangle-key left-key pixel-button" type="button" aria-label="좌측 이동키, 이전 장소로 이동" data-action="PREVIOUS">◀</button>
-
-            <div class="function-keys" aria-label="기능키 1부터 5">
-              <button class="function-key pixel-button" type="button" data-action="READ_CURRENT" aria-label="기능키 1 현재 위치">
-                <span>기능키 1</span><strong>현재 위치</strong>
-              </button>
-              <button class="function-key pixel-button primary" type="button" data-action="INTERACT_OR_NEXT" aria-label="기능키 2 선택, 인사, 다음">
-                <span>기능키 2</span><strong>선택/다음</strong>
-              </button>
-              <button class="function-key pixel-button" type="button" data-action="READ_MISSION" aria-label="기능키 3 미션 확인">
-                <span>기능키 3</span><strong>미션</strong>
-              </button>
-              <button class="function-key pixel-button" type="button" data-action="READ_AROUND" aria-label="기능키 4 주변 설명">
-                <span>기능키 4</span><strong>주변 설명</strong>
-              </button>
-              <button class="function-key pixel-button" type="button" data-action="HELP_OR_MENU" aria-label="기능키 5 도움말">
-                <span>기능키 5</span><strong>도움말</strong>
-              </button>
-            </div>
-
-            <button class="triangle-key right-key pixel-button" type="button" aria-label="우측 이동키, 다음 장소로 이동" data-action="NEXT">▶</button>
-          </section>
-
-          <section class="braille-panel" aria-label="점자 안내 영역">
-            <div class="braille-dots" aria-hidden="true"></div>
-            <div class="braille-text" id="brailleMessage" aria-live="polite">
-              PRESS 기능키2<br>TO START
-            </div>
-          </section>
-        </div>
-
-        <div class="keyboard-help pixel-panel">
-          <strong>테스트 키</strong>
-          <span>← 이전</span>
-          <span>→ 다음</span>
-          <span>1~5 기능키</span>
-          <span>Enter = 기능키 2</span>
-          <button id="soundToggle" class="mini-button" type="button" aria-pressed="false">효과음 OFF</button>
+  <div class="app">
+    <header class="topbar">
+      <section class="brand">
+        <div class="brand-icon" aria-hidden="true">✦</div>
+        <div>
+          <h1>DOT VILLAGE ARCADE</h1>
+          <p>8-bit tactile village adventure</p>
         </div>
       </section>
 
-      <aside class="side-panel">
-        <section class="lumi-card pixel-panel" aria-labelledby="lumiTitle">
-          <div class="lumi-avatar" aria-hidden="true">
-            <div class="ear left"></div>
-            <div class="ear right"></div>
-            <div class="face">•ᴗ•</div>
+      <section class="top-stat mission-top">
+        <span class="stat-icon lumi-mini" aria-hidden="true"></span>
+        <div><small>MISSION 01</small><strong>루미와 첫 인사</strong></div>
+      </section>
+      <section class="top-stat">
+        <span class="stat-icon pin" aria-hidden="true"></span>
+        <div><small>현재 위치</small><strong id="topLocation">숲속 마을 입구</strong></div>
+      </section>
+      <section class="top-stat">
+        <span class="stat-icon berry" aria-hidden="true">🍓</span>
+        <div><small>아이템</small><strong><span id="itemCount">03</span> / 20</strong></div>
+      </section>
+      <button class="settings" type="button" aria-label="설정">⚙</button>
+    </header>
+
+    <main class="dashboard">
+      <section class="game-panel panel glow" aria-label="Visual Game Screen">
+        <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">숲속 마을 입구</span></div>
+        <div class="game-screen" id="gameScreen" role="img" aria-label="픽셀 아트 숲속 마을 게임 화면">
+          <div class="pixel-sky"></div>
+          <div class="tile-map"></div>
+          <div class="river"></div>
+          <div class="bridge"></div>
+          <div class="cabin"><span class="roof"></span><span class="door"></span><span class="window"></span></div>
+          <div class="tree tree-a"><span></span></div><div class="tree tree-b"><span></span></div><div class="tree tree-c"><span></span></div><div class="tree tree-d"><span></span></div>
+          <div class="fence fence-a"></div><div class="fence fence-b"></div>
+          <div class="sign sign-a">!</div><div class="sign sign-b">MAP</div>
+          <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div>
+          <div class="flower flower-a"></div><div class="flower flower-b"></div><div class="flower flower-c"></div><div class="flower flower-d"></div>
+          <div class="mushroom mushroom-a"></div><div class="mushroom mushroom-b"></div>
+          <div class="chest"></div>
+          <div class="path"></div>
+          <div class="mini-map-overlay"><b>MINI MAP</b><div class="map-grid"><i></i><i></i><i class="target"></i><i></i><i class="player"></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="mission-overlay"><b>MISSION 01</b><strong>루미와 첫 인사</strong><span>□ 루미에게 다가가기</span></div>
+          <div class="player" id="playerSprite"><span class="ears"></span><span class="body"></span></div>
+          <div class="companion c1"></div><div class="companion c2"></div><div class="companion c3"></div>
+          <div class="lumi" id="lumiSprite"><span></span></div>
+          <div class="focus-ring"></div>
+          <div class="speech-bubble" id="speechBubble">안녕! 나는 루미야.<br>이 마을에 온 걸 환영해!</div>
+          <div class="game-hud">
+            <div class="hearts">♥ ♥ ♥</div>
+            <div class="level"><b>LV.01</b><span><i id="expBar"></i></span><em id="expText">EXP 25%</em></div>
+            <div class="inventory"><button>🍓<small>3</small></button><button>🪵<small>2</small></button><button>🌼<small>1</small></button><button></button></div>
+            <button class="action-chip" id="actionChip">F2 대화하기</button>
           </div>
-          <div>
-            <h2 id="lumiTitle">루미</h2>
-            <p id="lumiSpeech" aria-live="polite">시각 게임 화면은 풍성하게, Dot Pad 촉각 화면은 한 번에 하나씩 명확하게 보여줄게요.</p>
-          </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="mission-card pixel-panel" aria-labelledby="missionTitle">
-          <div class="mission-banner" id="missionBanner">TITLE SCREEN</div>
-          <h2 id="missionTitle">MISSION 01 · 루미와 첫 인사</h2>
-          <p id="missionText">8비트 촉각 마을 게임이 곧 시작됩니다.</p>
-          <p class="press-hint blink-text" id="pressHint">PRESS 기능키 2 TO START</p>
-        </section>
+      <section class="tactile-panel panel glow" aria-label="Dot Pad 60x40 tactile output">
+        <div class="panel-title"><strong>60×40 TACTILE OUTPUT</strong><span class="live">실시간 출력 중 ●</span></div>
+        <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 Dot Pad 촉각 출력 화면"></div>
+        <div class="tactile-status">
+          <div><small>현재 장면</small><strong id="tactileScene">숲속 마을 입구</strong></div>
+          <div><small>캐릭터 위치</small><strong id="tactilePosition">중앙</strong></div>
+          <div><small>출력 상태</small><strong id="tactileState">정상 출력 중 ✅</strong></div>
+        </div>
+        <div class="dot-guide">
+          <b>DOT PAD GUIDE</b>
+          <span><i class="g-char"></i>캐릭터</span><span><i class="g-path"></i>길</span><span><i class="g-tree"></i>나무</span><span><i class="g-home"></i>집</span><span><i class="g-water"></i>물</span><span><i class="g-star"></i>미션 오브젝트</span>
+        </div>
+      </section>
 
-        <section class="status-card pixel-panel" aria-labelledby="statusTitle">
-          <h2 id="statusTitle">현재 상태</h2>
-          <dl>
-            <div><dt>게임 상태</dt><dd id="stateLabel">TITLE</dd></div>
-            <div><dt>현재 장소</dt><dd id="placeLabel">타이틀 화면</dd></div>
-            <div><dt>Dot Pad</dt><dd id="dotPadStatus">시뮬레이션 모드</dd></div>
-          </dl>
-        </section>
-
-        <section class="log-panel pixel-panel" aria-labelledby="logTitle">
-          <h2 id="logTitle">안내 로그</h2>
-          <ol id="logList" aria-live="polite"></ol>
-        </section>
+      <section class="braille-card panel">
+        <h2>점자 안내</h2>
+        <div class="braille-dots" aria-hidden="true"></div>
+      </section>
+      <section class="message-card panel">
+        <h2>안내 메시지</h2>
+        <p id="guideMessage">루미에게 다가가 인사를 나눠보세요.</p>
+        <strong id="nextGuide">기능키 2(선택/다음)를 누르면 대화가 시작됩니다.</strong>
+        <button id="soundToggle" type="button" aria-pressed="false" class="sound">🔊 효과음 OFF</button>
+      </section>
+      <aside class="info-panel panel">
+        <h2>게임 진행 정보</h2>
+        <dl>
+          <div><dt>스테이지</dt><dd>1-1 숲속 마을</dd></div>
+          <div><dt>수집 아이템</dt><dd>🍓 <span id="sideItems">03</span> / 20</dd></div>
+          <div><dt>진행률</dt><dd><span class="progress"><i id="progressBar"></i></span><b id="progressText">15%</b></dd></div>
+        </dl>
+        <div class="lumi-side" aria-hidden="true"><span></span></div>
       </aside>
     </main>
+
+    <nav class="controls panel" aria-label="Dot Pad 기능키 조작">
+      <button data-action="PREVIOUS" class="nav-key"><span>◀</span><b>이전 이동</b><small>패닝키 -</small></button>
+      <button data-action="READ_CURRENT"><span>F1 📍</span><b>현재 위치</b><small>내 위치 확인</small></button>
+      <button data-action="INTERACT_OR_NEXT" class="primary"><span>F2 ☝</span><b>선택 / 다음</b><small>대화 및 선택</small></button>
+      <button data-action="READ_MISSION"><span>F3 🚩</span><b>미션</b><small>미션 확인</small></button>
+      <button data-action="READ_AROUND"><span>F4 👁</span><b>주변 설명</b><small>주변 정보 듣기</small></button>
+      <button data-action="HELP_OR_MENU"><span>F5 ?</span><b>도움말</b><small>도움말 듣기</small></button>
+      <button data-action="NEXT" class="nav-key"><span>▶</span><b>다음 이동</b><small>패닝키 +</small></button>
+    </nav>
   </div>
 
   <script src="./dotpad-adapter.js"></script>
   <script src="./script.js"></script>
-  <script src="./visual-enhance.js"></script>
 </body>
 </html>
