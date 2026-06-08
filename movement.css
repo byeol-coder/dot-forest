@@ -1,0 +1,77 @@
+/* Character movement layer for SESSION 01 · 루미와 첫 인사 */
+.game-screen[data-session="lumi"] {
+  --player-left: 260px;
+  --player-top: 372px;
+  --companion-1-left: 218px;
+  --companion-1-top: 432px;
+  --companion-2-left: 238px;
+  --companion-2-top: 392px;
+  --companion-3-left: 188px;
+  --companion-3-top: 402px;
+  --companion-4-left: 302px;
+  --companion-4-top: 432px;
+}
+
+.game-screen[data-session="lumi"] .player {
+  left: var(--player-left) !important;
+  top: var(--player-top) !important;
+  transition: left .22s steps(4), top .22s steps(4), transform .12s steps(2), filter .12s steps(2);
+}
+
+.game-screen[data-session="lumi"] .player.is-moving {
+  transform: translateY(-8px) scale(1.07);
+  filter: drop-shadow(0 0 12px rgba(255, 216, 77, .9));
+}
+
+.game-screen[data-session="lumi"] .lumi {
+  left: 510px !important;
+  top: 360px !important;
+}
+
+.game-screen[data-session="lumi"] .focus-ring {
+  left: calc(var(--player-left) - 12px) !important;
+  top: calc(var(--player-top) - 14px) !important;
+  width: 86px !important;
+  height: 102px !important;
+  transition: left .22s steps(4), top .22s steps(4);
+}
+
+.game-screen[data-session="lumi"] .c1 { left: var(--companion-1-left) !important; top: var(--companion-1-top) !important; transition: left .25s steps(4), top .25s steps(4); }
+.game-screen[data-session="lumi"] .c2 { left: var(--companion-2-left) !important; top: var(--companion-2-top) !important; transition: left .28s steps(4), top .28s steps(4); }
+.game-screen[data-session="lumi"] .c3 { left: var(--companion-3-left) !important; top: var(--companion-3-top) !important; transition: left .30s steps(4), top .30s steps(4); }
+.game-screen[data-session="lumi"] .c4 { left: var(--companion-4-left) !important; top: var(--companion-4-top) !important; transition: left .32s steps(4), top .32s steps(4); }
+
+.game-screen[data-session="lumi"] .speech-bubble {
+  left: 600px !important;
+  top: 238px !important;
+  width: 306px !important;
+}
+
+.game-screen[data-session="lumi"] .path {
+  left: 120px !important;
+  bottom: 130px !important;
+  width: 560px !important;
+  height: 78px !important;
+}
+
+.game-screen[data-session="lumi"] .session-title-card {
+  top: 22px;
+}
+
+.game-screen[data-session="lumi"] .mission-overlay {
+  right: 22px !important;
+  top: 28px !important;
+}
+
+.game-screen[data-session="lumi"] .near-lumi-hint {
+  position: absolute;
+  left: 408px;
+  top: 332px;
+  z-index: 18;
+  color: #1b1330;
+  background: #75f0cf;
+  border: 3px solid #111;
+  padding: 6px 10px;
+  font-weight: 1000;
+  box-shadow: 4px 4px 0 #0008;
+}
