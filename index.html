@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+<<<<<<< HEAD
   <title>Dot Village Arcade</title>
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./dtms.css" />
@@ -147,5 +148,105 @@
 
   <script src="./dotpad-adapter.js"></script>
   <script src="./script.js"></script>
+=======
+  <title>Dot Forest: Lumi & Dotlings</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <a href="#controls" class="skip-link">조작 영역으로 바로가기</a>
+
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Accessible tactile game MVP</p>
+      <h1>Dot Forest: Lumi &amp; Dotlings</h1>
+      <p class="subtitle">Meshy AI GLB 캐릭터 + 60×40 DotPad 촉각 프리뷰 + 키보드/모바일/음성/패닝키 입력 구조</p>
+    </div>
+    <div class="connection-card" aria-label="DotPad 연결 상태">
+      <span id="dotpadState" class="state-pill">DotPad 미연결</span>
+      <button id="connectDotPad" type="button" aria-label="DotPad 연결 시도">DotPad 연결</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="game-panel" aria-labelledby="gameTitle">
+      <div class="panel-title-row">
+        <div>
+          <h2 id="gameTitle">3D 숲 탐험 화면</h2>
+          <p>방향키, WASD, 모바일 D-pad, 음성 명령으로 루미를 움직여 도트링을 모아보세요.</p>
+        </div>
+        <div class="score" aria-live="polite">
+          <span>수집</span>
+          <strong id="scoreText">0 / 5</strong>
+        </div>
+      </div>
+      <div id="gameCanvas" class="game-canvas" role="img" aria-label="루미 캐릭터가 숲길에서 도트링을 수집하는 3D 게임 화면"></div>
+    </section>
+
+    <section class="dashboard">
+      <section class="tactile-panel" aria-labelledby="tactileTitle">
+        <div class="panel-title-row compact">
+          <div>
+            <h2 id="tactileTitle">60×40 DotPad tactile preview</h2>
+            <p>실제 DotPad SDK 연동 전, 같은 게임 상태를 binary matrix로 단순화한 화면입니다.</p>
+          </div>
+          <button id="exportMatrix" type="button" aria-label="현재 60×40 매트릭스 콘솔 출력">Matrix Log</button>
+        </div>
+        <canvas id="tactileCanvas" width="600" height="400" aria-label="60×40 촉각 그래픽 프리뷰 캔버스"></canvas>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot player"></i>루미</span>
+          <span><i class="dot item"></i>도트링</span>
+          <span><i class="dot path"></i>숲길</span>
+          <span><i class="dot obstacle"></i>장애물</span>
+        </div>
+      </section>
+
+      <section id="controls" class="control-panel" aria-labelledby="controlTitle">
+        <h2 id="controlTitle">조작 및 접근성 상태</h2>
+        <div id="liveStatus" class="live-status" role="status" aria-live="polite">루미가 숲 입구에서 기다리고 있어요.</div>
+
+        <div class="control-grid" role="group" aria-label="모바일 터치 방향키">
+          <span></span>
+          <button type="button" data-move="up" aria-label="루미 앞으로 이동">↑</button>
+          <span></span>
+          <button type="button" data-move="left" aria-label="루미 왼쪽 이동">←</button>
+          <button type="button" id="collectButton" aria-label="도트링 먹기 또는 상호작용">먹기</button>
+          <button type="button" data-move="right" aria-label="루미 오른쪽 이동">→</button>
+          <span></span>
+          <button type="button" data-move="down" aria-label="루미 뒤로 이동">↓</button>
+          <span></span>
+        </div>
+
+        <div class="action-row">
+          <button id="voiceButton" type="button" aria-label="음성 명령 시작">음성 명령</button>
+          <button id="resetButton" type="button" aria-label="게임 다시 시작">다시 시작</button>
+        </div>
+
+        <details class="help-box">
+          <summary>입력 방식 안내</summary>
+          <ul>
+            <li>키보드: 방향키 또는 WASD</li>
+            <li>모바일: 화면 D-pad 터치</li>
+            <li>음성: “앞으로”, “뒤로”, “왼쪽”, “오른쪽”, “먹기”</li>
+            <li>DotPad 패닝키: 방향 입력과 동일한 movePlayer(direction) 구조에 연결 가능</li>
+          </ul>
+        </details>
+      </section>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Prototype note: <code>sendDotPadFrame(matrix)</code> 함수가 실제 DotPadSDK-1.0.0.js 연결 지점입니다.</p>
+  </footer>
+
+  <script type="module" src="./script.js"></script>
+>>>>>>> b920dd7 (Add Dot Forest 3D GLB prototype)
 </body>
 </html>
