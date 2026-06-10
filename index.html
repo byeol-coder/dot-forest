@@ -3,250 +3,86 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-<<<<<<< HEAD
-  <title>Dot Village Arcade</title>
+  <title>Dot Forest: Lumi & Dotlings</title>
   <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./dtms.css" />
-  <link rel="stylesheet" href="./visual-polish.css" />
-  <link rel="stylesheet" href="./session-scenes.css" />
-  <link rel="stylesheet" href="./movement.css" />
-  <link rel="stylesheet" href="./visual-only.css" />
-  <link rel="stylesheet" href="./main-scenes.css" />
 </head>
 <body>
   <div class="app">
     <header class="topbar">
-      <section class="brand">
-        <div class="brand-icon" aria-hidden="true">✦</div>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✦</div>
         <div>
-          <h1>DOT VILLAGE ARCADE</h1>
-          <p>8-bit tactile village adventure</p>
+          <h1>Dot Forest</h1>
+          <p>Lumi & Dotlings · GLB character + Dot Pad panning prototype</p>
         </div>
-      </section>
-
-      <section class="top-stat mission-top">
-        <span class="stat-icon lumi-mini" aria-hidden="true"></span>
-        <div><small>MISSION 01</small><strong>루미와 첫 인사</strong></div>
-      </section>
-      <section class="top-stat">
-        <span class="stat-icon pin" aria-hidden="true"></span>
-        <div><small>현재 위치</small><strong id="topLocation">루미와 첫 인사</strong></div>
-      </section>
-      <section class="top-stat">
-        <span class="stat-icon berry" aria-hidden="true">🍓</span>
-        <div><small>아이템</small><strong><span id="itemCount">03</span> / 20</strong></div>
-      </section>
-      <button class="settings" type="button" aria-label="설정">⚙</button>
+      </div>
+      <div class="status" id="statusMessage" aria-live="polite" aria-atomic="true">루미를 불러오는 중입니다.</div>
     </header>
 
-    <main class="dashboard">
-      <section class="game-panel panel glow" aria-label="Visual Game Screen">
-        <div class="panel-title"><strong>VISUAL GAME SCREEN</strong><span id="sceneBadge">루미와 첫 인사</span></div>
-        <div class="game-screen rich-scene session-scene" id="gameScreen" data-session="lumi" role="img" aria-label="숲속 마을 게임 화면">
-          <div class="scene-bg scene-bg-1" aria-hidden="true"></div>
-          <div class="scene-bg scene-bg-2" aria-hidden="true"></div>
-          <div class="scene-bg scene-bg-3" aria-hidden="true"></div>
-          <div class="scene-bg scene-bg-4" aria-hidden="true"></div>
-          <div class="scene-light" aria-hidden="true"></div>
-
-          <div class="session-title-card" id="sessionTitleCard">SESSION 01 · 루미와 첫 인사</div>
-          <div class="pixel-sky"></div>
-          <div class="sunset-glow"></div>
-          <div class="cloud cloud-a"></div><div class="cloud cloud-b"></div>
-          <div class="far-hills hill-a"></div><div class="far-hills hill-b"></div>
-          <div class="forest-backdrop"></div>
-          <div class="tile-map"></div>
-          <div class="grass-detail"></div>
-          <div class="river"></div>
-          <div class="water-sparkle s1"></div><div class="water-sparkle s2"></div><div class="water-sparkle s3"></div>
-          <div class="pond"></div>
-          <div class="stepping-stones"><i></i><i></i><i></i><i></i></div>
-          <div class="bridge"></div>
-          <div class="cabin"><span class="roof"></span><span class="chimney"></span><span class="door"></span><span class="window"></span><span class="window w2"></span><span class="lantern"></span></div>
-          <div class="tree tree-a"><span></span></div><div class="tree tree-b"><span></span></div><div class="tree tree-c"><span></span></div><div class="tree tree-d"><span></span></div><div class="tree tree-e"><span></span></div><div class="tree tree-f"><span></span></div>
-          <div class="berry-tree berry-tree-a"><i></i><i></i><i></i></div><div class="berry-tree berry-tree-b"><i></i><i></i><i></i></div>
-          <div class="fence fence-a"></div><div class="fence fence-b"></div><div class="fence fence-c"></div>
-          <div class="sign sign-a">!</div><div class="sign sign-b">MAP</div><div class="quest-board">QUEST</div>
-          <div class="lamp lamp-a"></div><div class="lamp lamp-b"></div>
-          <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div><div class="rock rock-d"></div><div class="rock rock-e"></div>
-          <div class="flower flower-a"></div><div class="flower flower-b"></div><div class="flower flower-c"></div><div class="flower flower-d"></div><div class="flower flower-e"></div><div class="flower flower-f"></div>
-          <div class="flower-bed bed-a"></div><div class="flower-bed bed-b"></div>
-          <div class="mushroom mushroom-a"></div><div class="mushroom mushroom-b"></div><div class="mushroom mushroom-c"></div>
-          <div class="crate crate-a"></div><div class="crate crate-b"></div>
-          <div class="chest"></div>
-          <div class="path"></div>
-          <div class="path-stones"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="butterfly bfly-a"></div><div class="butterfly bfly-b"></div>
-          <div class="firefly f-a"></div><div class="firefly f-b"></div><div class="firefly f-c"></div>
-          <div class="mini-map-overlay"><b>MINI MAP</b><div class="map-grid"><i></i><i></i><i class="target"></i><i></i><i class="player"></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="mission-overlay"><b>MISSION 01</b><strong>루미와 첫 인사</strong><span id="missionOverlayStep">□ 루미에게 다가가기</span></div>
-          <div class="player" id="playerSprite"><span class="ears"></span><span class="face-mark"></span><span class="body"></span></div>
-          <div class="companion c1"></div><div class="companion c2"></div><div class="companion c3"></div><div class="companion c4"></div>
-          <div class="lumi" id="lumiSprite"><span></span></div>
-          <div class="focus-ring"></div>
-          <div class="speech-bubble" id="speechBubble">안녕! 나는 루미야.<br>이 마을에 온 걸 환영해!</div>
-          <div class="game-hud">
-            <div class="hearts">♥ ♥ ♥</div>
-            <div class="level"><b>LV.01</b><span><i id="expBar"></i></span><em id="expText">EXP 25%</em></div>
-            <div class="inventory"><button>🍓<small>3</small></button><button>🪵<small>2</small></button><button>🌼<small>1</small></button><button>🍄<small>0</small></button></div>
-            <button class="action-chip" id="actionChip">F2 대화하기</button>
-          </div>
+    <main class="layout">
+      <section class="panel game-panel" aria-label="3D 게임 화면">
+        <div class="panel-title">
+          <strong>3D GAME SCREEN</strong>
+          <span>Low-poly forest world</span>
+        </div>
+        <div id="gameCanvas" class="game-canvas" role="img" aria-label="루미 GLB 캐릭터가 로우폴리 숲에서 이동하는 3D 게임 화면">
+          <div class="loading" id="loadingMessage">루미 GLB 캐릭터를 불러오는 중입니다…</div>
         </div>
       </section>
 
-      <section class="tactile-panel panel glow" aria-label="Dot Pad 60x40 tactile output">
-        <div class="panel-title"><strong>60×40 TACTILE OUTPUT</strong><span class="live">DTMS 변환 가능 ●</span></div>
-        <div id="dotGrid" class="dot-grid" role="img" aria-label="60×40 Dot Pad 촉각 출력 화면"></div>
-        <div class="tactile-status">
-          <div><small>현재 장면</small><strong id="tactileScene">루미와 첫 인사</strong></div>
-          <div><small>캐릭터 위치</small><strong id="tactilePosition">중앙</strong></div>
-          <div><small>출력 상태</small><strong id="tactileState">정상 출력 중 ✅</strong></div>
+      <section class="panel tactile-panel" aria-label="Dot Pad 60×40 미리보기">
+        <div class="panel-title">
+          <strong>DOT PAD 60×40 PREVIEW</strong>
+          <span id="dotStatus">대기 중</span>
         </div>
-        <div class="dtms-status">
-          <div><small>DTMS 구조</small><strong>60×40 pins · 30×10 cells</strong></div>
-          <div><small>graphic.data</small><strong><span id="byteCount">300</span> bytes · <span id="hexCount">600</span> hex</strong></div>
-          <div><small>text.plain</small><p id="plainTextPreview">왼쪽 아래에 플레이어가 있고 오른쪽 아래에 루미가 있습니다.</p></div>
-          <code id="hexPreview" aria-label="DTMS graphic data hex preview">HEX PREVIEW</code>
+        <canvas id="tactileCanvas" class="tactile-canvas" width="600" height="400" role="img" aria-label="60×40 Dot Pad 촉각 출력 미리보기"></canvas>
+        <div class="info-box">
+          <small>현재 위치</small>
+          <strong id="positionText">x 0.0, z 0.0</strong>
         </div>
-        <div class="dot-guide">
-          <b>DOT PAD GUIDE</b>
-          <span><i class="g-char"></i>캐릭터</span><span><i class="g-path"></i>길</span><span><i class="g-tree"></i>나무</span><span><i class="g-home"></i>집</span><span><i class="g-water"></i>물</span><span><i class="g-star"></i>미션 오브젝트</span>
+        <div class="info-box">
+          <small>안내</small>
+          <strong id="missionText">왼쪽/오른쪽 패닝키로 루미를 움직여 보세요.</strong>
+          <p id="guideMessage" class="sr-only">닷패드 패닝키 조작 대기 중입니다.</p>
+          <p id="nextGuide" class="sr-only">F1 현재 위치, F2 선택/수집, F3 미션, F4 주변 설명</p>
         </div>
       </section>
-
-      <section class="braille-card panel">
-        <h2>점자 안내</h2>
-        <div class="braille-dots" aria-hidden="true"></div>
-      </section>
-      <section class="message-card panel">
-        <h2>안내 메시지</h2>
-        <p id="guideMessage">좌우 패닝키로 루미에게 다가가 보세요.</p>
-        <strong id="nextGuide">기능키 2(선택/다음)를 누르면 대화가 시작됩니다.</strong>
-        <button id="soundToggle" type="button" aria-pressed="false" class="sound">🔊 효과음 OFF</button>
-      </section>
-      <aside class="info-panel panel">
-        <h2>게임 진행 정보</h2>
-        <dl>
-          <div><dt>스테이지</dt><dd>1-1 숲속 마을</dd></div>
-          <div><dt>수집 아이템</dt><dd>🍓 <span id="sideItems">03</span> / 20</dd></div>
-          <div><dt>진행률</dt><dd><span class="progress"><i id="progressBar"></i></span><b id="progressText">15%</b></dd></div>
-        </dl>
-        <div class="lumi-side" aria-hidden="true"><span></span></div>
-      </aside>
     </main>
 
-    <nav class="controls panel" aria-label="Dot Pad 기능키 조작">
-      <button data-action="PREVIOUS" class="nav-key"><span>◀</span><b>이전 이동</b><small>패닝키 -</small></button>
-      <button data-action="READ_CURRENT"><span>F1 📍</span><b>현재 위치</b><small>내 위치 확인</small></button>
-      <button data-action="INTERACT_OR_NEXT" class="primary"><span>F2 ☝</span><b>선택 / 다음</b><small>대화 및 선택</small></button>
-      <button data-action="READ_MISSION"><span>F3 🚩</span><b>미션</b><small>미션 확인</small></button>
-      <button data-action="READ_AROUND"><span>F4 👁</span><b>주변 설명</b><small>주변 정보 듣기</small></button>
-      <button data-action="HELP_OR_MENU"><span>F5 ?</span><b>도움말</b><small>도움말 듣기</small></button>
-      <button data-action="NEXT" class="nav-key"><span>▶</span><b>다음 이동</b><small>패닝키 +</small></button>
+    <nav class="controls panel" aria-label="Dot Pad 패닝키 및 기능키 조작">
+      <button data-action="PREVIOUS" class="nav-key" type="button">
+        <span>◀</span>
+        <b>왼쪽 패닝키</b>
+        <small>루미 왼쪽 이동</small>
+      </button>
+      <button data-action="READ_CURRENT" type="button">
+        <span>F1 📍</span>
+        <b>현재 위치</b>
+        <small>좌표 안내</small>
+      </button>
+      <button data-action="INTERACT_OR_NEXT" class="primary" type="button">
+        <span>F2 ☝</span>
+        <b>선택 / 수집</b>
+        <small>도트링 수집</small>
+      </button>
+      <button data-action="READ_MISSION" type="button">
+        <span>F3 🚩</span>
+        <b>미션</b>
+        <small>목표 확인</small>
+      </button>
+      <button data-action="READ_AROUND" type="button">
+        <span>F4 👁</span>
+        <b>주변 설명</b>
+        <small>환경 설명</small>
+      </button>
+      <button data-action="NEXT" class="nav-key" type="button">
+        <span>▶</span>
+        <b>오른쪽 패닝키</b>
+        <small>루미 오른쪽 이동</small>
+      </button>
     </nav>
   </div>
 
-  <script src="./dotpad-adapter.js"></script>
-  <script src="./script.js"></script>
-=======
-  <title>Dot Forest: Lumi & Dotlings</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
-      }
-    }
-  </script>
-</head>
-<body>
-  <a href="#controls" class="skip-link">조작 영역으로 바로가기</a>
-
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">Accessible tactile game MVP</p>
-      <h1>Dot Forest: Lumi &amp; Dotlings</h1>
-      <p class="subtitle">Meshy AI GLB 캐릭터 + 60×40 DotPad 촉각 프리뷰 + 키보드/모바일/음성/패닝키 입력 구조</p>
-    </div>
-    <div class="connection-card" aria-label="DotPad 연결 상태">
-      <span id="dotpadState" class="state-pill">DotPad 미연결</span>
-      <button id="connectDotPad" type="button" aria-label="DotPad 연결 시도">DotPad 연결</button>
-    </div>
-  </header>
-
-  <main class="app-shell">
-    <section class="game-panel" aria-labelledby="gameTitle">
-      <div class="panel-title-row">
-        <div>
-          <h2 id="gameTitle">3D 숲 탐험 화면</h2>
-          <p>방향키, WASD, 모바일 D-pad, 음성 명령으로 루미를 움직여 도트링을 모아보세요.</p>
-        </div>
-        <div class="score" aria-live="polite">
-          <span>수집</span>
-          <strong id="scoreText">0 / 5</strong>
-        </div>
-      </div>
-      <div id="gameCanvas" class="game-canvas" role="img" aria-label="루미 캐릭터가 숲길에서 도트링을 수집하는 3D 게임 화면"></div>
-    </section>
-
-    <section class="dashboard">
-      <section class="tactile-panel" aria-labelledby="tactileTitle">
-        <div class="panel-title-row compact">
-          <div>
-            <h2 id="tactileTitle">60×40 DotPad tactile preview</h2>
-            <p>실제 DotPad SDK 연동 전, 같은 게임 상태를 binary matrix로 단순화한 화면입니다.</p>
-          </div>
-          <button id="exportMatrix" type="button" aria-label="현재 60×40 매트릭스 콘솔 출력">Matrix Log</button>
-        </div>
-        <canvas id="tactileCanvas" width="600" height="400" aria-label="60×40 촉각 그래픽 프리뷰 캔버스"></canvas>
-        <div class="legend" aria-hidden="true">
-          <span><i class="dot player"></i>루미</span>
-          <span><i class="dot item"></i>도트링</span>
-          <span><i class="dot path"></i>숲길</span>
-          <span><i class="dot obstacle"></i>장애물</span>
-        </div>
-      </section>
-
-      <section id="controls" class="control-panel" aria-labelledby="controlTitle">
-        <h2 id="controlTitle">조작 및 접근성 상태</h2>
-        <div id="liveStatus" class="live-status" role="status" aria-live="polite">루미가 숲 입구에서 기다리고 있어요.</div>
-
-        <div class="control-grid" role="group" aria-label="모바일 터치 방향키">
-          <span></span>
-          <button type="button" data-move="up" aria-label="루미 앞으로 이동">↑</button>
-          <span></span>
-          <button type="button" data-move="left" aria-label="루미 왼쪽 이동">←</button>
-          <button type="button" id="collectButton" aria-label="도트링 먹기 또는 상호작용">먹기</button>
-          <button type="button" data-move="right" aria-label="루미 오른쪽 이동">→</button>
-          <span></span>
-          <button type="button" data-move="down" aria-label="루미 뒤로 이동">↓</button>
-          <span></span>
-        </div>
-
-        <div class="action-row">
-          <button id="voiceButton" type="button" aria-label="음성 명령 시작">음성 명령</button>
-          <button id="resetButton" type="button" aria-label="게임 다시 시작">다시 시작</button>
-        </div>
-
-        <details class="help-box">
-          <summary>입력 방식 안내</summary>
-          <ul>
-            <li>키보드: 방향키 또는 WASD</li>
-            <li>모바일: 화면 D-pad 터치</li>
-            <li>음성: “앞으로”, “뒤로”, “왼쪽”, “오른쪽”, “먹기”</li>
-            <li>DotPad 패닝키: 방향 입력과 동일한 movePlayer(direction) 구조에 연결 가능</li>
-          </ul>
-        </details>
-      </section>
-    </section>
-  </main>
-
-  <footer class="app-footer">
-    <p>Prototype note: <code>sendDotPadFrame(matrix)</code> 함수가 실제 DotPadSDK-1.0.0.js 연결 지점입니다.</p>
-  </footer>
-
   <script type="module" src="./script.js"></script>
->>>>>>> b920dd7 (Add Dot Forest 3D GLB prototype)
 </body>
 </html>
