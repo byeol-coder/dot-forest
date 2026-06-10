@@ -3,89 +3,821 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dot Forest: Lumi & Dotlings</title>
-  <link rel="stylesheet" href="./style.css" />
+  <title>Dot Forest 3D Lumi</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f2df;
+  --ink: #172117;
+  --muted: #66705f;
+  --panel: rgba(255, 255, 255, .82);
+  --line: rgba(56, 79, 44, .18);
+  --green: #78b857;
+  --deep-green: #2f6b3d;
+  --cream: #ffe8b8;
+  --orange: #f7a85d;
+  --pink: #ff8fa3;
+  --blue: #90d4d8;
+  --shadow: 0 22px 50px rgba(60, 82, 41, .22);
+}
+
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: ui-rounded, "Apple SD Gothic Neo", "Pretendard", system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 5%, #fff3bd 0 18%, transparent 35%),
+    radial-gradient(circle at 90% 15%, #dff7ca 0 18%, transparent 34%),
+    linear-gradient(135deg, #fbf6df 0%, #e6f4ce 52%, #cdeee7 100%);
+}
+
+button { font: inherit; }
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  transform: translateY(-180%);
+  background: #111;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+.skip-link:focus { transform: translateY(0); }
+
+.app-shell {
+  width: min(1440px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 22px 0 40px;
+}
+.hero-card,
+.panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+  border-radius: 28px;
+}
+.hero-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  padding: clamp(18px, 4vw, 34px);
+  margin-bottom: 18px;
+}
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--deep-green);
+  font-weight: 900;
+  letter-spacing: .08em;
+  font-size: .78rem;
+}
+h1 { margin: 0; font-size: clamp(1.75rem, 4.8vw, 3.6rem); letter-spacing: -.04em; }
+.hero-copy { max-width: 720px; margin: 10px 0 0; color: var(--muted); line-height: 1.65; }
+.hero-status {
+  min-width: 150px;
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #fff8d6, #e9ffd8);
+  border: 1px solid rgba(90, 120, 52, .2);
+  text-align: right;
+}
+.hero-status span, .hero-status small { color: var(--muted); font-weight: 800; }
+.hero-status strong { font-size: 2rem; }
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.14fr) minmax(360px, .86fr);
+  gap: 18px;
+}
+.panel { padding: 18px; }
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.panel-heading strong { letter-spacing: .04em; }
+.panel-heading span { color: var(--muted); font-size: .92rem; }
+
+.forest-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(420px, 54vw, 640px);
+  border-radius: 24px;
+  border: 3px solid rgba(49, 94, 48, .22);
+  outline: none;
+  background: linear-gradient(#aee6ff 0 36%, #b9dd74 37% 100%);
+  transform: translateZ(0);
+}
+.forest-stage:focus { box-shadow: 0 0 0 5px rgba(47, 107, 61, .24); }
+.stage-sky {
+  position: absolute;
+  inset: 0 0 48%;
+  background:
+    radial-gradient(circle at 20% 24%, #fff8bd 0 38px, transparent 39px),
+    radial-gradient(ellipse at 72% 28%, rgba(255,255,255,.7) 0 42px, transparent 44px),
+    linear-gradient(#a8e7ff, #e9ffe7);
+}
+.stage-ground {
+  position: absolute;
+  inset: 36% 0 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,.22) 0 4px, transparent 5px) 0 0/34px 34px,
+    linear-gradient(180deg, #93cd69, #6db558);
+}
+.stage-path {
+  position: absolute;
+  left: 7%; right: 6%; bottom: 11%; height: 32%;
+  border-radius: 50% 45% 35% 40%;
+  background: linear-gradient(120deg, #e4b36d, #f3d592);
+  transform: skewX(-11deg);
+  box-shadow: inset 0 10px 0 rgba(255,255,255,.2);
+}
+.tree { position: absolute; width: 94px; height: 130px; bottom: 31%; }
+.tree::before { content: ""; position: absolute; left: 42px; bottom: 0; width: 16px; height: 70px; background: #8a5b36; border-radius: 10px; }
+.tree i { position: absolute; inset: 0 0 42px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #9dde6d, #3f904a 72%); box-shadow: 0 10px 0 rgba(0,0,0,.08); }
+.t1 { left: 6%; } .t2 { right: 10%; transform: scale(.9); } .t3 { left: 45%; bottom: 43%; transform: scale(.75); }
+.mushroom { position: absolute; width: 38px; height: 30px; border-radius: 20px 20px 10px 10px; background: #ff7187; box-shadow: inset 0 -10px 0 #f7ddbd; }
+.mushroom::before { content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #fff3d5; left: 10px; top: 7px; box-shadow: 15px 2px 0 #fff3d5; }
+.m1 { left: 12%; bottom: 18%; } .m2 { right: 16%; bottom: 16%; transform: scale(.8); }
+.pond { position: absolute; width: 170px; height: 72px; right: 10%; bottom: 35%; border-radius: 50%; background: radial-gradient(ellipse at 40% 40%, #ccffff, #72cbd2); border: 6px solid rgba(255,255,255,.36); }
+.item { position: absolute; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-weight: 900; color: #fff; transform: translate(-50%, -50%); filter: drop-shadow(0 8px 8px rgba(0,0,0,.18)); animation: bob 1.8s ease-in-out infinite; }
+.item.berry { background: var(--pink); }
+.item.star { background: #ffc94b; color: #814a00; }
+.item.seed { background: #7dcf61; }
+.item.is-collected { opacity: 0; transform: translate(-50%, -50%) scale(.2); pointer-events: none; }
+.item[data-item="0"] { left: 32%; top: 67%; }
+.item[data-item="1"] { left: 52%; top: 57%; }
+.item[data-item="2"] { left: 72%; top: 70%; }
+.item[data-item="3"] { left: 22%; top: 48%; }
+.item[data-item="4"] { left: 80%; top: 49%; }
+
+.lumi3d {
+  --x: 14%;
+  --y: 72%;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 96px;
+  height: 128px;
+  transform: translate(-50%, -84%) perspective(700px) rotateX(4deg) rotateY(var(--face, 14deg));
+  transform-style: preserve-3d;
+  transition: left .28s ease, top .28s ease, transform .28s ease;
+  z-index: 5;
+}
+.lumi3d.is-walking { animation: hop .28s ease; }
+.lumi3d.is-happy { animation: celebrate .7s ease; }
+.lumi3d .shadow { position: absolute; left: 18px; bottom: 0; width: 64px; height: 18px; border-radius: 50%; background: rgba(31, 63, 32, .22); filter: blur(2px); }
+.lumi3d .body { position: absolute; left: 24px; bottom: 18px; width: 52px; height: 58px; border-radius: 48% 48% 42% 42%; background: linear-gradient(135deg, #f9d995, #8cd064); box-shadow: inset -10px -12px 0 rgba(66, 116, 51, .18), 0 14px 20px rgba(0,0,0,.15); transform: translateZ(10px); }
+.lumi3d .head { position: absolute; left: 15px; top: 12px; width: 70px; height: 68px; border-radius: 46% 48% 44% 48%; background: linear-gradient(145deg, #fff0bc, #bce87b); box-shadow: inset -12px -12px 0 rgba(64,112,52,.18), 0 12px 20px rgba(0,0,0,.14); transform: translateZ(24px); }
+/* ── 루미 얼굴/팔다리 (누락 보완) ── */
+.lumi3d .eye { position: absolute; top: 40px; width: 11px; height: 14px; border-radius: 50%; background: #2f3b22; transform: translateZ(30px); box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+.lumi3d .eye.left { left: 30px; }
+.lumi3d .eye.right { left: 50px; }
+.lumi3d .eye::after { content: ''; position: absolute; top: 2px; left: 2px; width: 4px; height: 4px; border-radius: 50%; background: #fff; }
+.lumi3d .mouth { position: absolute; top: 58px; left: 38px; width: 16px; height: 9px; border-radius: 0 0 16px 16px; background: #e8915c; transform: translateZ(30px); }
+.lumi3d .leaf { position: absolute; background: linear-gradient(135deg, #7fd14e, #4ba32a); transform: translateZ(20px); }
+.lumi3d .leaf.stem { top: -2px; left: 46px; width: 5px; height: 18px; border-radius: 3px; background: #5a8c2a; }
+.lumi3d .leaf.one { top: -8px; left: 36px; width: 18px; height: 12px; border-radius: 60% 10% 60% 10%; transform: translateZ(20px) rotate(-30deg); }
+.lumi3d .leaf.two { top: -8px; left: 48px; width: 18px; height: 12px; border-radius: 10% 60% 10% 60%; transform: translateZ(20px) rotate(30deg); }
+.lumi3d .arm { position: absolute; width: 12px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #8cd064, #5fa838); transform: translateZ(14px); }
+.lumi3d .arm.left { left: 16px; top: 56px; transform: translateZ(14px) rotate(18deg); transform-origin: top center; }
+.lumi3d .arm.right { left: 72px; top: 56px; transform: translateZ(14px) rotate(-18deg); transform-origin: top center; }
+.lumi3d .leg { position: absolute; bottom: 14px; width: 14px; height: 24px; border-radius: 8px; background: linear-gradient(135deg, #6fb84a, #4a8c2a); transform: translateZ(12px); }
+.lumi3d .leg.left { left: 30px; }
+.lumi3d .leg.right { left: 52px; }
+.lumi3d.is-walking .arm.left { animation: armSwing .28s ease; }
+.lumi3d.is-walking .arm.right { animation: armSwing .28s ease reverse; }
+@keyframes armSwing { 0%,100% { transform: translateZ(14px) rotate(18deg); } 50% { transform: translateZ(14px) rotate(-10deg); } }
+.eye { position: absolute; width: 8px; height: 10px; border-radius: 50%; background: #1e2a1f; top: 30px; }
+.eye.left { left: 22px; } .eye.right { right: 22px; }
+.mouth { position: absolute; left: 31px; top: 46px; width: 10px; height: 6px; border-radius: 0 0 10px 10px; border-bottom: 3px solid #335235; }
+.leaf.stem { position: absolute; left: 46px; top: 0; width: 7px; height: 24px; border-radius: 10px; background: #3f9e42; transform: rotate(-7deg) translateZ(26px); }
+.leaf.one, .leaf.two { position: absolute; top: -4px; width: 30px; height: 18px; border-radius: 80% 0 80% 0; background: linear-gradient(145deg, #9cec68, #3e9d41); transform: translateZ(30px); }
+.leaf.one { left: 27px; transform: rotate(-24deg) translateZ(30px); }
+.leaf.two { right: 22px; transform: rotate(34deg) scale(.9) translateZ(30px); }
+.arm, .leg { position: absolute; border-radius: 999px; background: #8ccf62; box-shadow: inset -6px -4px 0 rgba(55,100,47,.16); }
+.arm { width: 17px; height: 38px; top: 73px; }
+.arm.left { left: 10px; transform: rotate(24deg); } .arm.right { right: 10px; transform: rotate(-24deg); }
+.leg { width: 17px; height: 32px; bottom: 10px; background: #6fac57; }
+.leg.left { left: 30px; } .leg.right { right: 30px; }
+
+.dot-grid {
+  display: grid;
+  grid-template-columns: repeat(60, 1fr);
+  gap: 2px;
+  aspect-ratio: 60 / 40;
+  padding: 10px;
+  border-radius: 18px;
+  background: #172117;
+  overflow: hidden;
+}
+.dot-cell { border-radius: 50%; background: rgba(255,255,255,.1); min-width: 0; }
+.dot-cell.on { background: rgba(255,255,255,.58); }
+.dot-cell.path { background: rgba(255, 228, 128, .82); }
+.dot-cell.item { background: #ffdf60; }
+.dot-cell.player { background: #95ff87; box-shadow: 0 0 6px #95ff87; }
+.dot-cell.wall { background: #78c5ff; }
+.dot-meta { display: grid; gap: 8px; margin-top: 14px; }
+.dot-meta p { margin: 0; display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.dot-meta span, .dot-meta code { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.control-panel { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(230px, auto); gap: 18px; align-items: center; }
+.control-copy h2, .sr-panel h2 { margin: 0 0 8px; }
+.control-copy p, .sr-panel p { margin: 0; color: var(--muted); line-height: 1.55; }
+.control-grid { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 52px); gap: 8px; place-items: center; }
+.control-grid button:first-child { grid-column: 2; }
+.control-grid button:nth-child(2) { grid-column: 1; grid-row: 2; }
+.control-grid button:nth-child(3) { grid-column: 2; grid-row: 2; }
+.control-grid button:nth-child(4) { grid-column: 3; grid-row: 2; }
+.control-grid button:nth-child(5) { grid-column: 2; grid-row: 3; }
+button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 16px;
+  padding: 10px 14px;
+  color: #172117;
+  background: #fff7d5;
+  box-shadow: inset 0 -3px 0 rgba(69,70,26,.13), 0 8px 18px rgba(42,73,31,.14);
+  font-weight: 900;
+  cursor: pointer;
+}
+button:focus-visible { outline: 4px solid #111; outline-offset: 3px; }
+button.primary { background: linear-gradient(135deg, #ffe66e, #ffb370); }
+.assist-controls { display: grid; gap: 8px; }
+.sr-panel { margin-top: 18px; }
+
+body.high-contrast { --bg: #000; --ink: #fff; --muted: #fff; --panel: #000; --line: #fff; background: #000; }
+body.high-contrast .panel, body.high-contrast .hero-card { border-width: 2px; box-shadow: none; }
+body.high-contrast button { background: #fff; color: #000; }
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after { animation: none !important; transition: none !important; }
+
+@keyframes bob { 50% { transform: translate(-50%, -60%); } }
+@keyframes hop { 50% { transform: translate(-50%, -92%) perspective(700px) rotateX(4deg) rotateY(var(--face, 14deg)); } }
+@keyframes celebrate { 30% { transform: translate(-50%, -100%) perspective(700px) rotateZ(-8deg) scale(1.06); } 65% { transform: translate(-50%, -88%) perspective(700px) rotateZ(8deg) scale(1.03); } }
+
+@media (max-width: 980px) {
+  .hero-card, .control-panel { grid-template-columns: 1fr; display: grid; }
+  .hero-status { text-align: left; }
+  .game-layout { grid-template-columns: 1fr; }
+  .forest-stage { min-height: 480px; }
+  .control-grid { justify-self: center; }
+}
+@media (max-width: 560px) {
+  .app-shell { width: min(100% - 18px, 520px); padding-top: 10px; }
+  .panel, .hero-card { border-radius: 20px; padding: 14px; }
+  .forest-stage { min-height: 420px; }
+  .lumi3d { width: 82px; height: 112px; }
+  .dot-grid { gap: 1px; padding: 7px; }
+  .panel-heading { align-items: flex-start; flex-direction: column; }
+  .assist-controls { grid-template-columns: 1fr; }
+}
+
+</style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
+  <a class="skip-link" href="#gameTitle">게임 화면으로 바로가기</a>
+
+  <main class="app-shell" aria-labelledby="gameTitle">
+    <header class="hero-card">
       <div>
-        <h1>Dot Forest</h1>
-        <p>Lumi & Dotlings · 3D tactile forest game</p>
+        <p class="eyebrow">DOT FOREST · ACCESSIBLE 3D TACTILE GAME</p>
+        <h1 id="gameTitle">루미의 숲속 아이템 탐험</h1>
+        <p class="hero-copy">웹/모바일 화면에서는 3D 루미가 움직이고, Dot Pad 영역에는 60×40 촉각 패턴이 함께 갱신됩니다.</p>
       </div>
-      <div class="status" id="statusMessage" aria-live="polite">
-        루미를 불러오는 중입니다.
+      <div class="hero-status" aria-label="게임 진행 상태">
+        <span>Stage 1</span>
+        <strong><span id="scoreText">0</span>점</strong>
+        <small>아이템 <span id="itemText">0</span> / 5</small>
       </div>
     </header>
 
-    <main class="layout">
-      <section class="panel game-panel">
-        <div class="panel-title">
-          <strong>3D GAME SCREEN</strong>
-          <span>GLB Lumi Character</span>
+    <section class="game-layout">
+      <section class="visual-panel panel" aria-label="3D 숲속 게임 화면">
+        <div class="panel-heading">
+          <strong>3D VISUAL GAME</strong>
+          <span id="visualStatus">루미가 숲 입구에 있습니다.</span>
         </div>
-        <div id="gameCanvas" class="game-canvas" aria-label="Dot Forest 3D 게임 화면"></div>
+
+        <div class="forest-stage" id="forestStage" tabindex="0" role="application" aria-label="루미 3D 게임 영역. 방향키로 이동하고 스페이스 또는 엔터로 아이템을 먹습니다.">
+          <div class="stage-sky" aria-hidden="true"></div>
+          <div class="stage-ground" aria-hidden="true"></div>
+          <div class="stage-path" aria-hidden="true"></div>
+          <div class="tree t1" aria-hidden="true"><i></i></div>
+          <div class="tree t2" aria-hidden="true"><i></i></div>
+          <div class="tree t3" aria-hidden="true"><i></i></div>
+          <div class="mushroom m1" aria-hidden="true"></div>
+          <div class="mushroom m2" aria-hidden="true"></div>
+          <div class="pond" aria-hidden="true"></div>
+
+          <div class="item berry" data-item="0" aria-hidden="true">●</div>
+          <div class="item star" data-item="1" aria-hidden="true">✦</div>
+          <div class="item seed" data-item="2" aria-hidden="true">●</div>
+          <div class="item berry" data-item="3" aria-hidden="true">●</div>
+          <div class="item star" data-item="4" aria-hidden="true">✦</div>
+
+          <div class="lumi3d" id="lumi3d" aria-hidden="true">
+            <div class="shadow"></div>
+            <div class="body"></div>
+            <div class="head">
+              <span class="eye left"></span>
+              <span class="eye right"></span>
+              <span class="mouth"></span>
+            </div>
+            <div class="leaf stem"></div>
+            <div class="leaf one"></div>
+            <div class="leaf two"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+            <div class="leg left"></div>
+            <div class="leg right"></div>
+          </div>
+        </div>
       </section>
 
-      <section class="panel tactile-panel">
-        <div class="panel-title">
-          <strong>DOT PAD 60×40 PREVIEW</strong>
-          <span id="dotStatus">대기 중</span>
+      <section class="tactile-panel panel" aria-label="Dot Pad 60 곱하기 40 촉각 그래픽 출력">
+        <div class="panel-heading">
+          <strong>60×40 DOT PAD OUTPUT</strong>
+          <span id="dotStatus">DTMS 변환 가능 구조</span>
         </div>
-        <canvas id="tactileCanvas" class="tactile-canvas" width="600" height="400" role="img" aria-label="60×40 Dot Pad 촉각 출력 미리보기"></canvas>
-
-        <div class="info-box">
-          <small>현재 위치</small>
-          <strong id="positionText">x 0, z 0</strong>
-        </div>
-        <div class="info-box">
-          <small>미션</small>
-          <strong id="missionText">도트링을 찾아 F2로 수집하세요.</strong>
-          <p id="guideMessage" class="sr-only">닷패드 패닝키 조작 대기 중입니다.</p>
-          <p id="nextGuide" class="sr-only">F1 현재 위치, F2 선택/수집, F3 미션, F4 주변 설명</p>
+        <div class="dot-grid" id="dotGrid" role="img" aria-label="Dot Pad 60×40 촉각 출력 미리보기"></div>
+        <div class="dot-meta">
+          <p><b>현재 위치</b><span id="positionText">1열 4행</span></p>
+          <p><b>주변 안내</b><span id="aroundText">오른쪽에 열매가 있습니다.</span></p>
+          <p><b>HEX</b><code id="hexPreview">준비 중</code></p>
         </div>
       </section>
-    </main>
+    </section>
 
-    <nav class="controls panel" aria-label="Dot Pad 패닝키 및 기능키 조작">
-      <button data-action="PREVIOUS" class="nav-key">
-        <span>◀</span>
-        <b>왼쪽 패닝키</b>
-        <small>루미 왼쪽 이동</small>
-      </button>
+    <section class="control-panel panel" aria-label="게임 조작 패널">
+      <div class="control-copy">
+        <h2>조작 방법</h2>
+        <p>키보드 방향키, 화면 버튼, 음성 명령, Dot Pad 패닝키 입력을 같은 이동 로직에 연결했습니다.</p>
+      </div>
+      <div class="control-grid" aria-label="방향 조작 버튼">
+        <button type="button" data-move="up" aria-label="위로 이동">▲</button>
+        <button type="button" data-move="left" aria-label="왼쪽으로 이동">◀</button>
+        <button type="button" data-action="collect" class="primary" aria-label="아이템 먹기">먹기</button>
+        <button type="button" data-move="right" aria-label="오른쪽으로 이동">▶</button>
+        <button type="button" data-move="down" aria-label="아래로 이동">▼</button>
+      </div>
+      <div class="assist-controls">
+        <button type="button" id="voiceButton">🎙 음성 조작 켜기</button>
+        <button type="button" id="readButton">📍 현재 위치 듣기</button>
+        <button type="button" id="contrastButton" aria-pressed="false">고대비 OFF</button>
+        <button type="button" id="motionButton" aria-pressed="false">모션 줄이기 OFF</button>
+      </div>
+    </section>
 
-      <button data-action="READ_CURRENT">
-        <span>F1 📍</span>
-        <b>현재 위치</b>
-        <small>위치 확인</small>
-      </button>
+    <section class="sr-panel panel" aria-label="스크린리더 실시간 안내">
+      <h2>스크린리더 안내</h2>
+      <p id="liveMessage" aria-live="polite" aria-atomic="true">루미가 숲 입구에 있습니다. 방향키로 이동해 아이템을 먹어보세요.</p>
+    </section>
+  </main>
 
-      <button data-action="INTERACT_OR_NEXT" class="primary">
-        <span>F2 ☝</span>
-        <b>선택 / 수집</b>
-        <small>도트링 수집</small>
-      </button>
+  <script>
+const DOT_WIDTH = 60;
+const DOT_HEIGHT = 40;
+const MAX_X = 4;
+const MAX_Y = 3;
 
-      <button data-action="READ_MISSION">
-        <span>F3 🚩</span>
-        <b>미션</b>
-        <small>목표 확인</small>
-      </button>
+const cells = [];
+const state = {
+  x: 0,
+  y: 3,
+  score: 0,
+  collected: new Set(),
+  voiceOn: false,
+  highContrast: false,
+  reducedMotion: false,
+  facing: 'right'
+};
 
-      <button data-action="READ_AROUND">
-        <span>F4 👁</span>
-        <b>주변 설명</b>
-        <small>환경 설명</small>
-      </button>
+const items = [
+  { id: 0, x: 1, y: 3, name: '빨간 열매', score: 10 },
+  { id: 1, x: 2, y: 2, name: '별조각', score: 20 },
+  { id: 2, x: 3, y: 3, name: '씨앗', score: 10 },
+  { id: 3, x: 0, y: 1, name: '숲 버섯', score: 15 },
+  { id: 4, x: 4, y: 1, name: '노란 별조각', score: 20 }
+];
 
-      <button data-action="NEXT" class="nav-key">
-        <span>▶</span>
-        <b>오른쪽 패닝키</b>
-        <small>루미 오른쪽 이동</small>
-      </button>
-    </nav>
-  </div>
+const stagePoints = [
+  ['14%', '72%'], ['32%', '67%'], ['52%', '57%'], ['72%', '70%'], ['84%', '62%'],
+  ['22%', '48%'], ['40%', '44%'], ['58%', '42%'], ['72%', '48%'], ['80%', '49%'],
+  ['14%', '38%'], ['32%', '37%'], ['50%', '34%'], ['67%', '38%'], ['82%', '36%'],
+  ['10%', '80%'], ['28%', '78%'], ['48%', '75%'], ['68%', '78%'], ['86%', '76%']
+];
 
-  <script type="module" src="./script.js"></script>
+const dotGrid = document.getElementById('dotGrid');
+const lumi = document.getElementById('lumi3d');
+const liveMessage = document.getElementById('liveMessage');
+const scoreText = document.getElementById('scoreText');
+const itemText = document.getElementById('itemText');
+const positionText = document.getElementById('positionText');
+const aroundText = document.getElementById('aroundText');
+const visualStatus = document.getElementById('visualStatus');
+const dotStatus = document.getElementById('dotStatus');
+const hexPreview = document.getElementById('hexPreview');
+const voiceButton = document.getElementById('voiceButton');
+const readButton = document.getElementById('readButton');
+const contrastButton = document.getElementById('contrastButton');
+const motionButton = document.getElementById('motionButton');
+const forestStage = document.getElementById('forestStage');
+
+let recognition = null;
+
+function init() {
+  buildDotGrid();
+  bindEvents();
+  setupSpeechRecognition();
+  render();
+  forestStage.focus();
+}
+
+function buildDotGrid() {
+  dotGrid.innerHTML = '';
+  for (let i = 0; i < DOT_WIDTH * DOT_HEIGHT; i += 1) {
+    const cell = document.createElement('span');
+    cell.className = 'dot-cell';
+    cell.setAttribute('aria-hidden', 'true');
+    cells.push(cell);
+    dotGrid.appendChild(cell);
+  }
+}
+
+function bindEvents() {
+  window.addEventListener('keydown', event => {
+    const keyMap = {
+      ArrowLeft: 'left',
+      ArrowRight: 'right',
+      ArrowUp: 'up',
+      ArrowDown: 'down'
+    };
+    if (keyMap[event.key]) {
+      event.preventDefault();
+      move(keyMap[event.key]);
+      return;
+    }
+    if (event.key === ' ' || event.key === 'Enter') {
+      event.preventDefault();
+      collectItem();
+    }
+    if (event.key.toLowerCase() === 'r') {
+      speakCurrentPosition();
+    }
+  });
+
+  document.querySelectorAll('[data-move]').forEach(button => {
+    button.addEventListener('click', () => move(button.dataset.move));
+  });
+  document.querySelector('[data-action="collect"]').addEventListener('click', collectItem);
+  readButton.addEventListener('click', speakCurrentPosition);
+  voiceButton.addEventListener('click', toggleVoice);
+  contrastButton.addEventListener('click', toggleContrast);
+  motionButton.addEventListener('click', toggleMotion);
+
+  window.addEventListener('dotpad:pan-left', () => move('left'));
+  window.addEventListener('dotpad:pan-right', () => move('right'));
+  window.addEventListener('dotpad:pan-up', () => move('up'));
+  window.addEventListener('dotpad:pan-down', () => move('down'));
+  window.addEventListener('dotpad:select', collectItem);
+}
+
+function setupSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    voiceButton.textContent = '🎙 음성 조작 미지원';
+    voiceButton.disabled = true;
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ko-KR';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.onresult = event => {
+    const last = event.results[event.results.length - 1][0].transcript.trim();
+    handleVoiceCommand(last);
+  };
+  recognition.onend = () => {
+    if (state.voiceOn) recognition.start();
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) return;
+  state.voiceOn = !state.voiceOn;
+  if (state.voiceOn) {
+    recognition.start();
+    voiceButton.textContent = '🎙 음성 조작 ON';
+    announce('음성 조작을 켰습니다. 위로 가, 아래로 가, 왼쪽으로 가, 오른쪽으로 가, 아이템 먹어라고 말할 수 있습니다.');
+  } else {
+    recognition.stop();
+    voiceButton.textContent = '🎙 음성 조작 켜기';
+    announce('음성 조작을 껐습니다.');
+  }
+}
+
+function handleVoiceCommand(text) {
+  if (/왼쪽|좌측/.test(text)) move('left');
+  else if (/오른쪽|우측/.test(text)) move('right');
+  else if (/위|앞/.test(text)) move('up');
+  else if (/아래|뒤/.test(text)) move('down');
+  else if (/먹|주워|획득|선택/.test(text)) collectItem();
+  else if (/위치|어디|주변/.test(text)) speakCurrentPosition();
+  else announce(`명령을 다시 말해주세요. 들은 내용은 ${text}입니다.`);
+}
+
+function move(direction) {
+  const next = { x: state.x, y: state.y };
+  if (direction === 'left') next.x -= 1;
+  if (direction === 'right') next.x += 1;
+  if (direction === 'up') next.y -= 1;
+  if (direction === 'down') next.y += 1;
+  state.facing = direction === 'left' ? 'left' : direction === 'right' ? 'right' : state.facing;
+
+  if (next.x < 0 || next.x > MAX_X || next.y < 0 || next.y > MAX_Y) {
+    lumi.classList.add('is-blocked');
+    setTimeout(() => lumi.classList.remove('is-blocked'), 240);
+    announce('숲의 경계입니다. 더 이동할 수 없습니다.');
+    return;
+  }
+
+  state.x = next.x;
+  state.y = next.y;
+  lumi.classList.add('is-walking');
+  setTimeout(() => lumi.classList.remove('is-walking'), 300);
+
+  const near = getCurrentItem();
+  if (near) announce(`${directionLabel(direction)} 이동했습니다. 바로 여기에 ${near.name}이 있습니다. 스페이스 또는 먹기 버튼으로 획득하세요.`);
+  else announce(`${directionLabel(direction)} 이동했습니다. ${describeAround()}`);
+  render();
+}
+
+function collectItem() {
+  const item = getCurrentItem();
+  if (!item) {
+    announce('현재 위치에는 먹을 수 있는 아이템이 없습니다. 주변 안내를 확인해 주세요.');
+    return;
+  }
+  state.collected.add(item.id);
+  state.score += item.score;
+  lumi.classList.add('is-happy');
+  setTimeout(() => lumi.classList.remove('is-happy'), 760);
+  announce(`${item.name}을 획득했습니다. 현재 점수는 ${state.score}점입니다.`);
+  if (state.collected.size === items.length) {
+    announce(`모든 아이템을 모았습니다. 스테이지 클리어! 총 점수는 ${state.score}점입니다.`);
+  }
+  render();
+}
+
+function render() {
+  const point = getStagePoint(state.x, state.y);
+  lumi.style.setProperty('--x', point[0]);
+  lumi.style.setProperty('--y', point[1]);
+  lumi.style.setProperty('--face', state.facing === 'left' ? '-18deg' : '18deg');
+
+  document.querySelectorAll('.item').forEach(el => {
+    const id = Number(el.dataset.item);
+    el.classList.toggle('is-collected', state.collected.has(id));
+  });
+
+  scoreText.textContent = String(state.score);
+  itemText.textContent = String(state.collected.size);
+  positionText.textContent = `${state.x + 1}열 ${state.y + 1}행`;
+  aroundText.textContent = describeAround();
+  visualStatus.textContent = `루미 위치: ${state.x + 1}열 ${state.y + 1}행`;
+
+  const matrix = createMatrix();
+  renderMatrix(matrix);
+  const hex = matrixToHex(matrix.map(row => row.map(value => value > 0 ? 1 : 0)));
+  hexPreview.textContent = `${hex.slice(0, 96)}…`;
+  dotStatus.textContent = `${DOT_WIDTH}×${DOT_HEIGHT} pins · ${hex.length} hex`;
+  sendToDotPad(matrix, hex);
+}
+
+function createMatrix() {
+  const matrix = Array.from({ length: DOT_HEIGHT }, () => Array(DOT_WIDTH).fill(0));
+  drawRect(matrix, 0, 0, DOT_WIDTH, DOT_HEIGHT, 1);
+  drawLine(matrix, 7, 34, 52, 29, 2, true);
+  drawTree(matrix, 9, 13, 1);
+  drawTree(matrix, 50, 12, 1);
+  drawPond(matrix, 45, 23, 1);
+  items.forEach(item => {
+    if (state.collected.has(item.id)) return;
+    const dot = gridToDot(item.x, item.y);
+    drawItem(matrix, dot.x, dot.y, 4);
+  });
+  const player = gridToDot(state.x, state.y);
+  drawLumiDot(matrix, player.x, player.y, 3);
+  return matrix;
+}
+
+function renderMatrix(matrix) {
+  for (let y = 0; y < DOT_HEIGHT; y += 1) {
+    for (let x = 0; x < DOT_WIDTH; x += 1) {
+      const cell = cells[y * DOT_WIDTH + x];
+      const value = matrix[y][x];
+      cell.className = 'dot-cell';
+      if (value === 1) cell.classList.add('on');
+      if (value === 2) cell.classList.add('path');
+      if (value === 3) cell.classList.add('player');
+      if (value === 4) cell.classList.add('item');
+      if (value === 5) cell.classList.add('wall');
+    }
+  }
+}
+
+function gridToDot(x, y) {
+  return { x: 9 + x * 10, y: 9 + y * 8 };
+}
+
+function getStagePoint(x, y) {
+  return stagePoints[y * 5 + x];
+}
+
+function getCurrentItem() {
+  return items.find(item => item.x === state.x && item.y === state.y && !state.collected.has(item.id));
+}
+
+function describeAround() {
+  const candidates = items.filter(item => !state.collected.has(item.id));
+  if (!candidates.length) return '모든 아이템을 수집했습니다.';
+  const nearest = candidates
+    .map(item => ({ ...item, distance: Math.abs(item.x - state.x) + Math.abs(item.y - state.y) }))
+    .sort((a, b) => a.distance - b.distance)[0];
+  const dx = nearest.x - state.x;
+  const dy = nearest.y - state.y;
+  const dir = [];
+  if (dy < 0) dir.push('위쪽');
+  if (dy > 0) dir.push('아래쪽');
+  if (dx < 0) dir.push('왼쪽');
+  if (dx > 0) dir.push('오른쪽');
+  if (nearest.distance === 0) return `현재 위치에 ${nearest.name}이 있습니다.`;
+  return `${dir.join(' ')} ${nearest.distance}칸 거리에 ${nearest.name}이 있습니다.`;
+}
+
+function speakCurrentPosition() {
+  announce(`현재 위치는 ${state.x + 1}열 ${state.y + 1}행입니다. ${describeAround()}`);
+}
+
+function announce(message) {
+  liveMessage.textContent = message;
+  visualStatus.textContent = message;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.02;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+function directionLabel(direction) {
+  return ({ left: '왼쪽으로', right: '오른쪽으로', up: '위로', down: '아래로' })[direction];
+}
+
+function toggleContrast() {
+  state.highContrast = !state.highContrast;
+  document.body.classList.toggle('high-contrast', state.highContrast);
+  contrastButton.textContent = state.highContrast ? '고대비 ON' : '고대비 OFF';
+  contrastButton.setAttribute('aria-pressed', String(state.highContrast));
+}
+
+function toggleMotion() {
+  state.reducedMotion = !state.reducedMotion;
+  document.body.classList.toggle('reduced-motion', state.reducedMotion);
+  motionButton.textContent = state.reducedMotion ? '모션 줄이기 ON' : '모션 줄이기 OFF';
+  motionButton.setAttribute('aria-pressed', String(state.reducedMotion));
+}
+
+function sendToDotPad(matrix, hex) {
+  const binaryMatrix = matrix.map(row => row.map(value => value > 0 ? 1 : 0));
+  if (window.DotPadBridge?.sendGraphic) {
+    window.DotPadBridge.sendGraphic(matrix, {
+      page: 1,
+      title: '루미의 숲속 아이템 탐험',
+      textPlain: liveMessage.textContent
+    });
+    return;
+  }
+  window.currentDotPadFrame = { width: DOT_WIDTH, height: DOT_HEIGHT, matrix: binaryMatrix, hex };
+}
+
+function setPoint(matrix, x, y, value = 1) {
+  if (x >= 0 && x < DOT_WIDTH && y >= 0 && y < DOT_HEIGHT) matrix[y][x] = value;
+}
+function drawRect(matrix, x, y, w, h, value = 1) {
+  for (let i = 0; i < w; i += 1) { setPoint(matrix, x + i, y, value); setPoint(matrix, x + i, y + h - 1, value); }
+  for (let j = 0; j < h; j += 1) { setPoint(matrix, x, y + j, value); setPoint(matrix, x + w - 1, y + j, value); }
+}
+function drawLine(matrix, x1, y1, x2, y2, value = 1, dotted = false) {
+  const dx = Math.abs(x2 - x1), dy = -Math.abs(y2 - y1), sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+  let err = dx + dy, x = x1, y = y1, count = 0;
+  while (true) {
+    if (!dotted || count % 2 === 0) setPoint(matrix, x, y, value);
+    if (x === x2 && y === y2) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x += sx; }
+    if (e2 <= dx) { err += dx; y += sy; }
+    count += 1;
+  }
+}
+function drawTree(matrix, x, y, value) {
+  for (let yy = -4; yy <= 4; yy += 1) {
+    for (let xx = -5; xx <= 5; xx += 1) {
+      if (xx * xx + yy * yy <= 22) setPoint(matrix, x + xx, y + yy, value);
+    }
+  }
+  drawLine(matrix, x, y + 4, x, y + 10, value);
+}
+function drawPond(matrix, x, y, value) {
+  for (let yy = -3; yy <= 3; yy += 1) {
+    for (let xx = -7; xx <= 7; xx += 1) {
+      if ((xx * xx) / 49 + (yy * yy) / 9 <= 1) setPoint(matrix, x + xx, y + yy, value);
+    }
+  }
+}
+function drawItem(matrix, x, y, value) {
+  setPoint(matrix, x, y - 2, value); setPoint(matrix, x - 2, y, value); setPoint(matrix, x, y, value); setPoint(matrix, x + 2, y, value); setPoint(matrix, x, y + 2, value);
+}
+function drawLumiDot(matrix, x, y, value) {
+  [[0,-4],[-1,-3],[0,-3],[1,-3],[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[-1,0],[0,0],[1,0],[-1,1],[0,1],[1,1],[0,2],[0,3]].forEach(([dx, dy]) => setPoint(matrix, x + dx, y + dy, value));
+  setPoint(matrix, x - 1, y - 6, value);
+  setPoint(matrix, x + 1, y - 6, value);
+}
+function matrixToHex(binaryMatrix) {
+  const bits = binaryMatrix.flat();
+  const bytes = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let byte = 0;
+    for (let b = 0; b < 8; b += 1) byte = (byte << 1) | (bits[i + b] || 0);
+    bytes.push(byte);
+  }
+  return bytes.map(value => value.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+init();
+
+</script>
+
+<style id="mobileBannerStyle">
+#mobileBanner{position:fixed;inset:0;z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(7,7,15,.97);backdrop-filter:blur(8px);padding:32px;text-align:center;font-family:sans-serif;color:#f0eeff}
+#mobileBanner.show{display:flex}
+#mobileBanner .mb-icon{font-size:48px}
+#mobileBanner .mb-title{font-size:18px;font-weight:800}
+#mobileBanner .mb-desc{font-size:13px;color:rgba(240,238,255,.6);line-height:1.7;max-width:300px}
+#mobileBanner .mb-btn{margin-top:8px;padding:11px 26px;background:#6b46f0;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+</style>
+<div id="mobileBanner" role="dialog" aria-label="화면 크기 안내">
+  <div class="mb-icon">🖥️</div>
+  <div class="mb-title">데스크톱에서 최적화된 데모입니다</div>
+  <div class="mb-desc">이 프로토타입은 넓은 화면에 맞춰 설계되었습니다. PC나 태블릿 가로 모드에서 열면 가장 좋습니다.</div>
+  <button class="mb-btn" onclick="document.getElementById('mobileBanner').classList.remove('show')">그래도 계속 보기</button>
+</div>
+<script>
+(function(){function c(){if(window.innerWidth<720)document.getElementById('mobileBanner')?.classList.add('show');}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',c);else c();})();
+</script>
+<script id="i18nLite">
+(function(){
+  const DICT = {"그래도 계속 보기": "Continue anyway", "데스크톱에서 최적화된 데모입니다": "Optimized for desktop", "이 프로토타입은 넓은 화면에 맞춰 설계되었습니다. PC나 태블릿 가로 모드에서 열면 가장 좋습니다.": "This prototype is designed for wide screens. Best viewed on PC or tablet landscape mode.", "화면 크기 안내": "Screen size notice", "게임 화면으로 바로가기": "Skip to game", "루미의 숲속 아이템 탐험": "Lumi's Forest Item Quest", "루미가 숲 입구에 있습니다.": "Lumi is at the forest entrance.", "현재 위치": "Position", "주변 안내": "Surroundings", "오른쪽에 열매가 있습니다.": "There is a fruit to the right.", "준비 중": "Preparing", "조작 방법": "Controls", "먹기": "Eat", "고대비 OFF": "High Contrast OFF", "모션 줄이기 OFF": "Reduce Motion OFF", "스크린리더 안내": "Screen Reader", "점": "pts", "아이템 ": "Items ", "게임 조작 패널": "Game control panel", "게임 진행 상태": "Game progress", "루미 3D 게임 영역. 방향키로 이동하고 스페이스 또는 엔터로 아이템을 먹습니다.": "Lumi 3D game area. Move with arrow keys, eat items with space or enter.", "방향 조작 버튼": "Direction buttons", "스크린리더 실시간 안내": "Live screen reader announcement", "아래로 이동": "Move down", "아이템 먹기": "Eat item", "오른쪽으로 이동": "Move right", "왼쪽으로 이동": "Move left", "위로 이동": "Move up"};
+  const REV = {};
+  Object.keys(DICT).forEach(k=>REV[DICT[k]]=k);
+  let cur='ko';
+  const btn=document.createElement('button');
+  btn.id='langToggle';btn.textContent='EN';
+  btn.setAttribute('aria-label','Switch to English');
+  btn.style.cssText='position:fixed;bottom:14px;right:14px;z-index:2147483647;padding:8px 14px;background:rgba(20,20,35,.92);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:99px;font-size:11px;font-weight:800;font-family:monospace;cursor:pointer;backdrop-filter:blur(8px);letter-spacing:.08em';
+  document.documentElement.appendChild(btn);
+  function applyDict(root,dict){
+    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,null);
+    let n=root;const nodes=[root];
+    while(n=w.nextNode())nodes.push(n);
+    nodes.forEach(node=>{
+      if(node.nodeType===3){const t=node.nodeValue.trim();if(t&&dict[t])node.nodeValue=node.nodeValue.replace(t,dict[t]);}
+      else if(node.nodeType===1){if(node.nodeName==='SCRIPT'||node.nodeName==='STYLE')return;
+        ['aria-label','placeholder','title'].forEach(a=>{const v=node.getAttribute&&node.getAttribute(a);if(v&&dict[v])node.setAttribute(a,dict[v]);});}
+    });
+  }
+  let observing=false;
+  const obs=new MutationObserver(muts=>{if(cur==='ko')return;obs.disconnect();observing=false;
+    muts.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1||n.nodeType===3)applyDict(n,DICT);}));startObs();});
+  function startObs(){if(observing)return;obs.observe(document.body,{childList:true,subtree:true});observing=true;}
+  btn.addEventListener('click',()=>{const dict=cur==='ko'?DICT:REV;obs.disconnect();observing=false;
+    applyDict(document.body,dict);cur=cur==='ko'?'en':'ko';btn.textContent=cur==='ko'?'EN':'KO';
+    document.documentElement.lang=cur;if(cur==='en')startObs();});
+})();
+</script>
+
 </body>
 </html>
