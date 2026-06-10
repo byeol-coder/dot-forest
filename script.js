@@ -5,13 +5,37 @@ const DOT_WIDTH = 60;
 const DOT_HEIGHT = 40;
 const WORLD_LIMIT_X = 26;
 const WORLD_LIMIT_Z = 17;
-const MOVE_STEP = 1.2;
+const PANNING_STEP = 1.2;
 const ITEM_COLLECT_DISTANCE = 2.25;
+
+const ACTIONS = {
+  PREVIOUS: 'PREVIOUS',
+  NEXT: 'NEXT',
+  READ_CURRENT: 'READ_CURRENT',
+  INTERACT_OR_NEXT: 'INTERACT_OR_NEXT',
+  READ_MISSION: 'READ_MISSION',
+  READ_AROUND: 'READ_AROUND'
+};
+
+const keyboardToDotPadAction = {
+  ArrowLeft: ACTIONS.PREVIOUS,
+  ArrowRight: ACTIONS.NEXT,
+  F1: ACTIONS.READ_CURRENT,
+  F2: ACTIONS.INTERACT_OR_NEXT,
+  F3: ACTIONS.READ_MISSION,
+  F4: ACTIONS.READ_AROUND,
+  '1': ACTIONS.READ_CURRENT,
+  '2': ACTIONS.INTERACT_OR_NEXT,
+  '3': ACTIONS.READ_MISSION,
+  '4': ACTIONS.READ_AROUND,
+  Enter: ACTIONS.INTERACT_OR_NEXT,
+  ' ': ACTIONS.INTERACT_OR_NEXT
+};
 
 const dom = {
   gameCanvas: document.getElementById('gameCanvas'),
   tactileCanvas: document.getElementById('tactileCanvas'),
-  liveStatus: document.getElementById('liveStatus'),
+  liveStatus: document.getElementById('liveStatus') || document.querySelector('.live-status'),
   scoreText: document.getElementById('scoreText'),
   dotpadState: document.getElementById('dotpadState'),
   connectDotPad: document.getElementById('connectDotPad'),
@@ -21,7 +45,7 @@ const dom = {
   resetButton: document.getElementById('resetButton'),
 };
 
-const tactileCtx = dom.tactileCanvas.getContext('2d');
+const tactileCtx = dom.tactileCanvas ? dom.tactileCanvas.getContext('2d') : null;
 const loader = new GLTFLoader();
 const clock = new THREE.Clock();
 
@@ -75,14 +99,14 @@ async function init() {
 
 function setupThreeScene() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xdff3ff);
-  scene.fog = new THREE.Fog(0xdff3ff, 38, 85);
+  scene.background = new THREE.Color(0x7db2a0);
+  scene.fog = new THREE.Fog(0x7db2a0, 26, 84);
 
   const width = dom.gameCanvas.clientWidth;
   const height = dom.gameCanvas.clientHeight;
 
-  camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 200);
-  camera.position.set(0, 32, 38);
+  camera = new THREE.PerspectiveCamera(55, width / height, 0.2, 260);
+  camera.position.set(0, 24, 30);
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -170,7 +194,7 @@ async function loadLumiCharacter() {
   const walkGltf = await loader.loadAsync('./models/lumi_walk.glb');
   lumiRoot = walkGltf.scene;
   lumiRoot.name = 'Lumi';
-  lumiRoot.scale.setScalar(2.3);
+  lumiRoot.scale.setScalar(2.8);
   lumiRoot.position.set(gameState.player.x, 0, gameState.player.z);
   lumiRoot.traverse((obj) => {
     if (obj.isMesh) {
@@ -223,7 +247,7 @@ function placeDotlings() {
     let mesh;
     if (dotlingPrototype) {
       mesh = dotlingPrototype.clone(true);
-      mesh.scale.setScalar(0.55);
+      mesh.scale.setScalar(0.9);
     } else {
       mesh = new THREE.Mesh(
         new THREE.SphereGeometry(0.75, 16, 16),
@@ -239,72 +263,121 @@ function placeDotlings() {
 
 function setupEventListeners() {
   document.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase();
-    const map = {
-      arrowup: 'up', w: 'up',
-      arrowdown: 'down', s: 'down',
-      arrowleft: 'left', a: 'left',
-      arrowright: 'right', d: 'right',
-    };
-    if (map[key]) {
-      event.preventDefault();
-      handlePanningKeyInput(map[key]);
-    }
-    if (key === 'enter' || key === ' ') {
-      event.preventDefault();
-      collectNearbyDotling();
-    }
+    const action = keyboardToDotPadAction[event.key];
+    if (!action) return;
+    event.preventDefault();
+    handleDotPadAction(action);
   });
 
-  document.querySelectorAll('[data-move]').forEach((button) => {
-    button.addEventListener('click', () => handlePanningKeyInput(button.dataset.move));
+  document.querySelectorAll('nav.controls [data-action]').forEach((button) => {
+    button.addEventListener('click', () => handleDotPadAction(button.dataset.action));
   });
 
-  dom.collectButton.addEventListener('click', collectNearbyDotling);
-  dom.resetButton.addEventListener('click', resetGame);
-  dom.connectDotPad.addEventListener('click', connectDotPad);
-  dom.exportMatrix.addEventListener('click', () => {
+  if (dom.connectDotPad) dom.connectDotPad.addEventListener('click', connectDotPad);
+  if (dom.exportMatrix) dom.exportMatrix.addEventListener('click', () => {
     console.table(lastMatrix);
     announce('현재 60×40 매트릭스를 브라우저 콘솔에 출력했습니다.');
   });
-  dom.voiceButton.addEventListener('click', startVoiceCommand);
+  if (dom.voiceButton) dom.voiceButton.addEventListener('click', startVoiceCommand);
+  if (dom.resetButton) dom.resetButton.addEventListener('click', resetGame);
 }
 
-function handlePanningKeyInput(direction) {
-  // 실제 DotPad 패닝키 이벤트가 들어오면 이 함수에 direction만 넘기면 됩니다.
-  movePlayer(direction);
+function handleDotPadAction(action) {
+  if (action === ACTIONS.PREVIOUS) {
+    movePlayerByPanningKey(-1);
+    return;
+  }
+
+  if (action === ACTIONS.NEXT) {
+    movePlayerByPanningKey(1);
+    return;
+  }
+
+  if (action === ACTIONS.INTERACT_OR_NEXT) {
+    collectOrInteract();
+    return;
+  }
+
+  if (action === ACTIONS.READ_CURRENT) {
+    announceCurrentPosition();
+    return;
+  }
+
+  if (action === ACTIONS.READ_MISSION) {
+    announceMission();
+    return;
+  }
+
+  if (action === ACTIONS.READ_AROUND) {
+    announceAround();
+  }
 }
 
-function movePlayer(direction) {
-  const next = { x: gameState.player.x, z: gameState.player.z };
-  if (direction === 'up') next.z -= MOVE_STEP;
-  if (direction === 'down') next.z += MOVE_STEP;
-  if (direction === 'left') next.x -= MOVE_STEP;
-  if (direction === 'right') next.x += MOVE_STEP;
+function movePlayerByPanningKey(direction) {
+  if (!lumiRoot) return;
 
-  next.x = THREE.MathUtils.clamp(next.x, -WORLD_LIMIT_X, WORLD_LIMIT_X);
-  next.z = THREE.MathUtils.clamp(next.z, -WORLD_LIMIT_Z, WORLD_LIMIT_Z);
-
-  if (isBlocked(next.x, next.z)) {
+  const nextX = THREE.MathUtils.clamp(gameState.player.x + direction * PANNING_STEP, -WORLD_LIMIT_X, WORLD_LIMIT_X);
+  if (isBlocked(nextX, gameState.player.z)) {
     playAction('idle');
     announce('앞에 나무 장애물이 있어요. 다른 방향으로 이동해 주세요.', true);
     return;
   }
 
-  gameState.player.x = next.x;
-  gameState.player.z = next.z;
-  gameState.player.direction = direction;
-  gameState.player.animation = 'walk';
+  gameState.player.x = nextX;
+  gameState.player.direction = direction > 0 ? 'right' : 'left';
+  updateLumiTransform(gameState.player.direction);
+  lumiRoot.position.x = gameState.player.x;
 
-  updateLumiTransform(direction);
   playAction('walk');
-  announce(`루미가 ${directionToKorean(direction)} 이동했습니다.`);
+  announce(`루미가 ${direction > 0 ? '오른쪽으로' : '왼쪽으로'} 이동했습니다.`);
   checkNearbyHint();
   drawTactileFrame();
   sendDotPadFrame(lastMatrix);
 
-  clearTimeout(movePlayer.idleTimer);
-  movePlayer.idleTimer = setTimeout(() => playAction('idle'), 450);
+  clearTimeout(movePlayerByPanningKey.idleTimer);
+  movePlayerByPanningKey.idleTimer = setTimeout(() => playAction('idle'), 450);
+}
+
+function collectOrInteract() {
+  collectNearbyDotling();
+}
+
+function announce(message) {
+  const safeMessage = String(message ?? "");
+  const ids = ["statusMessage", "missionText", "guideMessage", "nextGuide", "dotStatus", "liveStatus"];
+  const candidates = [];
+
+  if (typeof dom !== "undefined" && dom) {
+    ids.forEach((id) => {
+      if (dom[id]) candidates.push(dom[id]);
+    });
+  }
+
+  ids.forEach((id) => {
+    const element = document.getElementById(id);
+    if (element) candidates.push(element);
+  });
+
+  const targets = [...new Set(candidates)];
+
+  if (targets.length === 0) {
+    console.warn("[Dot Forest] 안내 메시지를 표시할 요소가 없습니다:", safeMessage);
+    return;
+  }
+
+  targets.forEach((target) => {
+    target.textContent = safeMessage;
+  });
+
+  console.log("[Dot Forest]", safeMessage);
+}
+
+function announceMission() {
+  announce('현재 미션은 루미와 첫 인사입니다. 도트링을 수집하며 숲을 탐험해 보세요.');
+}
+
+function announceAround() {
+  announce('주변에는 나무와 작은 길이 있습니다. 왼쪽/오른쪽 패닝키로 루미를 이동할 수 있어요.');
 }
 
 function isBlocked(x, z) {
@@ -379,7 +452,11 @@ function distance2D(a, b) {
 
 function updateScore() {
   const collected = gameState.items.filter((item) => item.collected).length;
-  dom.scoreText.textContent = `${collected} / ${gameState.items.length}`;
+  if (dom.scoreText) dom.scoreText.textContent = `${collected} / ${gameState.items.length}`;
+  const itemCount = document.getElementById('itemCount');
+  if (itemCount) itemCount.textContent = String(collected).padStart(2, '0');
+  const sideItems = document.getElementById('sideItems');
+  if (sideItems) sideItems.textContent = String(collected).padStart(2, '0');
 }
 
 function createDotPadMatrix() {
@@ -458,12 +535,20 @@ function drawShape(matrix, shape, originX, originY) {
 }
 
 function drawTactileFrame() {
+  if (!dom.tactileCanvas || !tactileCtx) return;
+
+  const rect = dom.tactileCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  dom.tactileCanvas.width = Math.floor(rect.width * dpr);
+  dom.tactileCanvas.height = Math.floor(rect.height * dpr);
+  tactileCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
   lastMatrix = createDotPadMatrix();
-  const cellW = dom.tactileCanvas.width / DOT_WIDTH;
-  const cellH = dom.tactileCanvas.height / DOT_HEIGHT;
+  const cellW = rect.width / DOT_WIDTH;
+  const cellH = rect.height / DOT_HEIGHT;
 
   tactileCtx.fillStyle = '#162217';
-  tactileCtx.fillRect(0, 0, dom.tactileCanvas.width, dom.tactileCanvas.height);
+  tactileCtx.fillRect(0, 0, rect.width, rect.height);
 
   for (let y = 0; y < DOT_HEIGHT; y++) {
     for (let x = 0; x < DOT_WIDTH; x++) {
@@ -476,22 +561,22 @@ function drawTactileFrame() {
     }
   }
 
-  drawTactileGrid(cellW, cellH);
+  drawTactileGrid(cellW, cellH, rect.width, rect.height);
 }
 
-function drawTactileGrid(cellW, cellH) {
+function drawTactileGrid(cellW, cellH, width, height) {
   tactileCtx.strokeStyle = 'rgba(255,255,255,0.055)';
   tactileCtx.lineWidth = 1;
   for (let x = 0; x <= DOT_WIDTH; x += 5) {
     tactileCtx.beginPath();
     tactileCtx.moveTo(x * cellW, 0);
-    tactileCtx.lineTo(x * cellW, dom.tactileCanvas.height);
+    tactileCtx.lineTo(x * cellW, height);
     tactileCtx.stroke();
   }
   for (let y = 0; y <= DOT_HEIGHT; y += 5) {
     tactileCtx.beginPath();
     tactileCtx.moveTo(0, y * cellH);
-    tactileCtx.lineTo(dom.tactileCanvas.width, y * cellH);
+    tactileCtx.lineTo(width, y * cellH);
     tactileCtx.stroke();
   }
 }
@@ -554,17 +639,15 @@ function startVoiceCommand() {
     return;
   }
   dom.voiceButton.classList.add('listening');
-  announce('음성 명령을 듣고 있습니다. 앞으로, 뒤로, 왼쪽, 오른쪽, 먹기 중 하나를 말해 주세요.');
+  announce('음성 명령을 듣고 있습니다. 왼쪽, 오른쪽, 먹기 중 하나를 말해 주세요.');
   speechRecognition.start();
 }
 
 function handleVoiceCommand(text) {
   const normalized = text.replaceAll(' ', '');
-  if (normalized.includes('앞')) return handlePanningKeyInput('up');
-  if (normalized.includes('뒤')) return handlePanningKeyInput('down');
-  if (normalized.includes('왼')) return handlePanningKeyInput('left');
-  if (normalized.includes('오른')) return handlePanningKeyInput('right');
-  if (normalized.includes('먹') || normalized.includes('수집')) return collectNearbyDotling();
+  if (normalized.includes('왼')) return handleDotPadAction(ACTIONS.PREVIOUS);
+  if (normalized.includes('오른')) return handleDotPadAction(ACTIONS.NEXT);
+  if (normalized.includes('먹') || normalized.includes('수집')) return collectOrInteract();
   announce(`인식한 명령은 ${text}입니다. 지원하는 명령이 아니에요.`, true);
 }
 
@@ -607,8 +690,11 @@ function animate() {
   });
 
   if (lumiRoot) {
-    camera.position.x += (gameState.player.x * 0.25 - camera.position.x) * 0.04;
-    camera.position.z += ((gameState.player.z + 34) - camera.position.z) * 0.04;
+    const targetX = gameState.player.x;
+    const targetZ = gameState.player.z + 28;
+    camera.position.x += (targetX - camera.position.x) * 0.08;
+    camera.position.y += (24 - camera.position.y) * 0.08;
+    camera.position.z += (targetZ - camera.position.z) * 0.08;
     camera.lookAt(gameState.player.x, 1.6, gameState.player.z);
   }
 
@@ -626,4 +712,7 @@ function onResize() {
 }
 
 // 외부 SDK/하드웨어 이벤트 연결 예시:
-// window.handleDotPadPanningKey = handlePanningKeyInput;
+// window.handleDotPadPanningKey = (direction) => {
+//   if (direction === 'left') handleDotPadAction(ACTIONS.PREVIOUS);
+//   if (direction === 'right') handleDotPadAction(ACTIONS.NEXT);
+// };

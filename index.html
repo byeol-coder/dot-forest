@@ -9,40 +9,38 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">✦</div>
-        <div>
-          <h1>Dot Forest</h1>
-          <p>Lumi & Dotlings · GLB character + Dot Pad panning prototype</p>
-        </div>
+      <div>
+        <h1>Dot Forest</h1>
+        <p>Lumi & Dotlings · 3D tactile forest game</p>
       </div>
-      <div class="status" id="statusMessage" aria-live="polite" aria-atomic="true">루미를 불러오는 중입니다.</div>
+      <div class="status" id="statusMessage" aria-live="polite">
+        루미를 불러오는 중입니다.
+      </div>
     </header>
 
     <main class="layout">
-      <section class="panel game-panel" aria-label="3D 게임 화면">
+      <section class="panel game-panel">
         <div class="panel-title">
           <strong>3D GAME SCREEN</strong>
-          <span>Low-poly forest world</span>
+          <span>GLB Lumi Character</span>
         </div>
-        <div id="gameCanvas" class="game-canvas" role="img" aria-label="루미 GLB 캐릭터가 로우폴리 숲에서 이동하는 3D 게임 화면">
-          <div class="loading" id="loadingMessage">루미 GLB 캐릭터를 불러오는 중입니다…</div>
-        </div>
+        <div id="gameCanvas" class="game-canvas" aria-label="Dot Forest 3D 게임 화면"></div>
       </section>
 
-      <section class="panel tactile-panel" aria-label="Dot Pad 60×40 미리보기">
+      <section class="panel tactile-panel">
         <div class="panel-title">
           <strong>DOT PAD 60×40 PREVIEW</strong>
           <span id="dotStatus">대기 중</span>
         </div>
         <canvas id="tactileCanvas" class="tactile-canvas" width="600" height="400" role="img" aria-label="60×40 Dot Pad 촉각 출력 미리보기"></canvas>
+
         <div class="info-box">
           <small>현재 위치</small>
-          <strong id="positionText">x 0.0, z 0.0</strong>
+          <strong id="positionText">x 0, z 0</strong>
         </div>
         <div class="info-box">
-          <small>안내</small>
-          <strong id="missionText">왼쪽/오른쪽 패닝키로 루미를 움직여 보세요.</strong>
+          <small>미션</small>
+          <strong id="missionText">도트링을 찾아 F2로 수집하세요.</strong>
           <p id="guideMessage" class="sr-only">닷패드 패닝키 조작 대기 중입니다.</p>
           <p id="nextGuide" class="sr-only">F1 현재 위치, F2 선택/수집, F3 미션, F4 주변 설명</p>
         </div>
@@ -50,32 +48,37 @@
     </main>
 
     <nav class="controls panel" aria-label="Dot Pad 패닝키 및 기능키 조작">
-      <button data-action="PREVIOUS" class="nav-key" type="button">
+      <button data-action="PREVIOUS" class="nav-key">
         <span>◀</span>
         <b>왼쪽 패닝키</b>
         <small>루미 왼쪽 이동</small>
       </button>
-      <button data-action="READ_CURRENT" type="button">
+
+      <button data-action="READ_CURRENT">
         <span>F1 📍</span>
         <b>현재 위치</b>
-        <small>좌표 안내</small>
+        <small>위치 확인</small>
       </button>
-      <button data-action="INTERACT_OR_NEXT" class="primary" type="button">
+
+      <button data-action="INTERACT_OR_NEXT" class="primary">
         <span>F2 ☝</span>
         <b>선택 / 수집</b>
         <small>도트링 수집</small>
       </button>
-      <button data-action="READ_MISSION" type="button">
+
+      <button data-action="READ_MISSION">
         <span>F3 🚩</span>
         <b>미션</b>
         <small>목표 확인</small>
       </button>
-      <button data-action="READ_AROUND" type="button">
+
+      <button data-action="READ_AROUND">
         <span>F4 👁</span>
         <b>주변 설명</b>
         <small>환경 설명</small>
       </button>
-      <button data-action="NEXT" class="nav-key" type="button">
+
+      <button data-action="NEXT" class="nav-key">
         <span>▶</span>
         <b>오른쪽 패닝키</b>
         <small>루미 오른쪽 이동</small>
