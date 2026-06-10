@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/GLTFLoader.js";
 
 const DOT_WIDTH = 60;
 const DOT_HEIGHT = 40;
@@ -35,7 +35,7 @@ const keyboardToDotPadAction = {
 const dom = {
   gameCanvas: document.getElementById('gameCanvas'),
   tactileCanvas: document.getElementById('tactileCanvas'),
-  liveStatus: document.getElementById('liveStatus') || document.querySelector('.live-status'),
+  liveStatus: document.getElementById('liveStatus') || document.getElementById('statusMessage') || document.querySelector('.live-status'),
   scoreText: document.getElementById('scoreText'),
   dotpadState: document.getElementById('dotpadState'),
   connectDotPad: document.getElementById('connectDotPad'),
@@ -345,40 +345,36 @@ function collectOrInteract() {
 function announce(message) {
   const safeMessage = String(message ?? "");
   const ids = ["statusMessage", "missionText", "guideMessage", "nextGuide", "dotStatus", "liveStatus"];
-  const candidates = [];
+  const targets = [];
 
   if (typeof dom !== "undefined" && dom) {
     ids.forEach((id) => {
-      if (dom[id]) candidates.push(dom[id]);
+      if (dom[id]) targets.push(dom[id]);
     });
   }
 
   ids.forEach((id) => {
     const element = document.getElementById(id);
-    if (element) candidates.push(element);
+    if (element) targets.push(element);
   });
 
-  const targets = [...new Set(candidates)];
+  const uniqueTargets = [...new Set(targets)];
 
-  if (targets.length === 0) {
-    console.warn("[Dot Forest] 안내 메시지를 표시할 요소가 없습니다:", safeMessage);
+  if (uniqueTargets.length === 0) {
+    console.warn("[Dot Forest] 안내 메시지 표시 요소가 없습니다:", safeMessage);
     return;
   }
 
-  targets.forEach((target) => {
+  uniqueTargets.forEach((target) => {
     target.textContent = safeMessage;
   });
 
   console.log("[Dot Forest]", safeMessage);
 }
 
-function announceMission() {
-  announce('현재 미션은 루미와 첫 인사입니다. 도트링을 수집하며 숲을 탐험해 보세요.');
-}
 
-function announceAround() {
-  announce('주변에는 나무와 작은 길이 있습니다. 왼쪽/오른쪽 패닝키로 루미를 이동할 수 있어요.');
-}
+
+
 
 function isBlocked(x, z) {
   return gameState.obstacles.some((obstacle) => {
@@ -662,16 +658,7 @@ function resetGame() {
   announce('게임을 다시 시작했습니다. 루미가 숲 입구로 돌아왔어요.', true);
 }
 
-function announce(message, speak = false) {
-  dom.liveStatus.textContent = message;
-  if (speak && 'speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.lang = 'ko-KR';
-    utterance.rate = 1.02;
-    window.speechSynthesis.speak(utterance);
-  }
-}
+
 
 function directionToKorean(direction) {
   return ({ up: '앞으로', down: '뒤로', left: '왼쪽으로', right: '오른쪽으로' })[direction] || '이동';
