@@ -1,41 +1,17 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const DOT_WIDTH = 60;
 const DOT_HEIGHT = 40;
 const WORLD_LIMIT_X = 26;
 const WORLD_LIMIT_Z = 17;
-const PANNING_STEP = 1.2;
+const MOVE_STEP = 1.2;
 const ITEM_COLLECT_DISTANCE = 2.25;
-
-const ACTIONS = {
-  PREVIOUS: 'PREVIOUS',
-  NEXT: 'NEXT',
-  READ_CURRENT: 'READ_CURRENT',
-  INTERACT_OR_NEXT: 'INTERACT_OR_NEXT',
-  READ_MISSION: 'READ_MISSION',
-  READ_AROUND: 'READ_AROUND'
-};
-
-const keyboardToDotPadAction = {
-  ArrowLeft: ACTIONS.PREVIOUS,
-  ArrowRight: ACTIONS.NEXT,
-  F1: ACTIONS.READ_CURRENT,
-  F2: ACTIONS.INTERACT_OR_NEXT,
-  F3: ACTIONS.READ_MISSION,
-  F4: ACTIONS.READ_AROUND,
-  '1': ACTIONS.READ_CURRENT,
-  '2': ACTIONS.INTERACT_OR_NEXT,
-  '3': ACTIONS.READ_MISSION,
-  '4': ACTIONS.READ_AROUND,
-  Enter: ACTIONS.INTERACT_OR_NEXT,
-  ' ': ACTIONS.INTERACT_OR_NEXT
-};
 
 const dom = {
   gameCanvas: document.getElementById('gameCanvas'),
   tactileCanvas: document.getElementById('tactileCanvas'),
-  liveStatus: document.getElementById('liveStatus') || document.getElementById('statusMessage') || document.querySelector('.live-status'),
+  liveStatus: document.getElementById('liveStatus'),
   scoreText: document.getElementById('scoreText'),
   dotpadState: document.getElementById('dotpadState'),
   connectDotPad: document.getElementById('connectDotPad'),
@@ -45,7 +21,7 @@ const dom = {
   resetButton: document.getElementById('resetButton'),
 };
 
-const tactileCtx = dom.tactileCanvas ? dom.tactileCanvas.getContext('2d') : null;
+const tactileCtx = dom.tactileCanvas.getContext('2d');
 const loader = new GLTFLoader();
 const clock = new THREE.Clock();
 
@@ -67,7 +43,7 @@ const initialItems = [
 ];
 
 const gameState = {
-  player: { x: -20, z: 10, direction: 'down', animation: 'idle' },
+  player: { x: -20, z: 10, direction: 'down', animation: 'idle', yaw: 0 },
   items: structuredClone(initialItems),
   itemMeshes: new Map(),
   obstacles: [
@@ -99,27 +75,31 @@ async function init() {
 
 function setupThreeScene() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x7db2a0);
-  scene.fog = new THREE.Fog(0x7db2a0, 26, 84);
+  scene.background = new THREE.Color(0xdff3ff);
+  scene.fog = new THREE.Fog(0xdff3ff, 55, 120);
 
   const width = dom.gameCanvas.clientWidth;
   const height = dom.gameCanvas.clientHeight;
 
-  camera = new THREE.PerspectiveCamera(55, width / height, 0.2, 260);
-  camera.position.set(0, 24, 30);
-  camera.lookAt(0, 0, 0);
+  camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 200);
+  camera.position.set(-20, 16, 32);
+  camera.lookAt(-20, 3, 10);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(width, height);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // GLB PBR 재질이 원본 색으로 보이도록 색공간/톤매핑 설정 (Three.js r152+ 필수)
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
   dom.gameCanvas.appendChild(renderer.domElement);
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x4d6f43, 2.4);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x4d6f43, 1.6);
   scene.add(hemi);
 
-  const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+  const sun = new THREE.DirectionalLight(0xffffff, 2.6);
   sun.position.set(-18, 28, 18);
   sun.castShadow = true;
   sun.shadow.camera.left = -45;
@@ -194,12 +174,21 @@ async function loadLumiCharacter() {
   const walkGltf = await loader.loadAsync('./models/lumi_walk.glb');
   lumiRoot = walkGltf.scene;
   lumiRoot.name = 'Lumi';
-  lumiRoot.scale.setScalar(2.8);
+  lumiRoot.scale.setScalar(6.0);
   lumiRoot.position.set(gameState.player.x, 0, gameState.player.z);
   lumiRoot.traverse((obj) => {
     if (obj.isMesh) {
       obj.castShadow = true;
       obj.receiveShadow = true;
+      // 텍스처가 있으면 sRGB 색공간 적용 (색 바램 방지)
+      if (obj.material) {
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach(m => {
+          if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+          if (m.emissiveMap) m.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+          m.needsUpdate = true;
+        });
+      }
     }
   });
   scene.add(lumiRoot);
@@ -210,14 +199,10 @@ async function loadLumiCharacter() {
     actions.walk = mixer.clipAction(walkGltf.animations[0]);
   }
 
-  try {
-    const runGltf = await loader.loadAsync('./models/lumi_run.glb');
-    if (runGltf.animations?.length) {
-      actions.run = mixer.clipAction(runGltf.animations[0]);
-      actions.collect = mixer.clipAction(runGltf.animations[0]);
-    }
-  } catch (error) {
-    console.warn('Running animation could not be loaded. Fallback to walk.', error);
+  // walk.glb 하나만 사용 — run/collect도 walk 애니메이션 재사용 (경량화)
+  if (walkGltf.animations?.length) {
+    actions.run = mixer.clipAction(walkGltf.animations[0]);
+    actions.collect = mixer.clipAction(walkGltf.animations[0]);
   }
 
   actions.idle = null;
@@ -225,18 +210,8 @@ async function loadLumiCharacter() {
 }
 
 async function loadDotlingModel() {
-  try {
-    const gltf = await loader.loadAsync('./models/dotring.glb');
-    dotlingPrototype = gltf.scene;
-    dotlingPrototype.traverse((obj) => {
-      if (obj.isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-      }
-    });
-  } catch (error) {
-    console.warn('Dotling GLB could not be loaded. Primitive fallback will be used.', error);
-  }
+  // dotring.glb 미사용 — 황금 구체 프리미티브로 대체 (경량화)
+  dotlingPrototype = null;
 }
 
 function placeDotlings() {
@@ -247,7 +222,7 @@ function placeDotlings() {
     let mesh;
     if (dotlingPrototype) {
       mesh = dotlingPrototype.clone(true);
-      mesh.scale.setScalar(0.9);
+      mesh.scale.setScalar(0.55);
     } else {
       mesh = new THREE.Mesh(
         new THREE.SphereGeometry(0.75, 16, 16),
@@ -263,118 +238,73 @@ function placeDotlings() {
 
 function setupEventListeners() {
   document.addEventListener('keydown', (event) => {
-    const action = keyboardToDotPadAction[event.key];
-    if (!action) return;
-    event.preventDefault();
-    handleDotPadAction(action);
+    const key = event.key.toLowerCase();
+    const map = {
+      arrowup: 'up', w: 'up',
+      arrowdown: 'down', s: 'down',
+      arrowleft: 'left', a: 'left',
+      arrowright: 'right', d: 'right',
+    };
+    if (map[key]) {
+      event.preventDefault();
+      handlePanningKeyInput(map[key]);
+    }
+    if (key === 'enter' || key === ' ') {
+      event.preventDefault();
+      collectNearbyDotling();
+    }
   });
 
-  document.querySelectorAll('nav.controls [data-action]').forEach((button) => {
-    button.addEventListener('click', () => handleDotPadAction(button.dataset.action));
+  document.querySelectorAll('[data-move]').forEach((button) => {
+    button.addEventListener('click', () => handlePanningKeyInput(button.dataset.move));
   });
 
-  if (dom.connectDotPad) dom.connectDotPad.addEventListener('click', connectDotPad);
-  if (dom.exportMatrix) dom.exportMatrix.addEventListener('click', () => {
+  dom.collectButton.addEventListener('click', collectNearbyDotling);
+  dom.resetButton.addEventListener('click', resetGame);
+  dom.connectDotPad.addEventListener('click', connectDotPad);
+  dom.exportMatrix.addEventListener('click', () => {
     console.table(lastMatrix);
     announce('현재 60×40 매트릭스를 브라우저 콘솔에 출력했습니다.');
   });
-  if (dom.voiceButton) dom.voiceButton.addEventListener('click', startVoiceCommand);
-  if (dom.resetButton) dom.resetButton.addEventListener('click', resetGame);
+  dom.voiceButton.addEventListener('click', startVoiceCommand);
 }
 
-function handleDotPadAction(action) {
-  if (action === ACTIONS.PREVIOUS) {
-    movePlayerByPanningKey(-1);
-    return;
-  }
-
-  if (action === ACTIONS.NEXT) {
-    movePlayerByPanningKey(1);
-    return;
-  }
-
-  if (action === ACTIONS.INTERACT_OR_NEXT) {
-    collectOrInteract();
-    return;
-  }
-
-  if (action === ACTIONS.READ_CURRENT) {
-    announceCurrentPosition();
-    return;
-  }
-
-  if (action === ACTIONS.READ_MISSION) {
-    announceMission();
-    return;
-  }
-
-  if (action === ACTIONS.READ_AROUND) {
-    announceAround();
-  }
+function handlePanningKeyInput(direction) {
+  // 실제 DotPad 패닝키 이벤트가 들어오면 이 함수에 direction만 넘기면 됩니다.
+  movePlayer(direction);
 }
 
-function movePlayerByPanningKey(direction) {
-  if (!lumiRoot) return;
+function movePlayer(direction) {
+  const next = { x: gameState.player.x, z: gameState.player.z };
+  if (direction === 'up') next.z -= MOVE_STEP;
+  if (direction === 'down') next.z += MOVE_STEP;
+  if (direction === 'left') next.x -= MOVE_STEP;
+  if (direction === 'right') next.x += MOVE_STEP;
 
-  const nextX = THREE.MathUtils.clamp(gameState.player.x + direction * PANNING_STEP, -WORLD_LIMIT_X, WORLD_LIMIT_X);
-  if (isBlocked(nextX, gameState.player.z)) {
+  next.x = THREE.MathUtils.clamp(next.x, -WORLD_LIMIT_X, WORLD_LIMIT_X);
+  next.z = THREE.MathUtils.clamp(next.z, -WORLD_LIMIT_Z, WORLD_LIMIT_Z);
+
+  if (isBlocked(next.x, next.z)) {
     playAction('idle');
     announce('앞에 나무 장애물이 있어요. 다른 방향으로 이동해 주세요.', true);
     return;
   }
 
-  gameState.player.x = nextX;
-  gameState.player.direction = direction > 0 ? 'right' : 'left';
-  updateLumiTransform(gameState.player.direction);
-  lumiRoot.position.x = gameState.player.x;
+  gameState.player.x = next.x;
+  gameState.player.z = next.z;
+  gameState.player.direction = direction;
+  gameState.player.animation = 'walk';
 
+  updateLumiTransform(direction);
   playAction('walk');
-  announce(`루미가 ${direction > 0 ? '오른쪽으로' : '왼쪽으로'} 이동했습니다.`);
+  announce(`루미가 ${directionToKorean(direction)} 이동했습니다.`);
   checkNearbyHint();
   drawTactileFrame();
   sendDotPadFrame(lastMatrix);
 
-  clearTimeout(movePlayerByPanningKey.idleTimer);
-  movePlayerByPanningKey.idleTimer = setTimeout(() => playAction('idle'), 450);
+  clearTimeout(movePlayer.idleTimer);
+  movePlayer.idleTimer = setTimeout(() => playAction('idle'), 450);
 }
-
-function collectOrInteract() {
-  collectNearbyDotling();
-}
-
-function announce(message) {
-  const safeMessage = String(message ?? "");
-  const ids = ["statusMessage", "missionText", "guideMessage", "nextGuide", "dotStatus", "liveStatus"];
-  const targets = [];
-
-  if (typeof dom !== "undefined" && dom) {
-    ids.forEach((id) => {
-      if (dom[id]) targets.push(dom[id]);
-    });
-  }
-
-  ids.forEach((id) => {
-    const element = document.getElementById(id);
-    if (element) targets.push(element);
-  });
-
-  const uniqueTargets = [...new Set(targets)];
-
-  if (uniqueTargets.length === 0) {
-    console.warn("[Dot Forest] 안내 메시지 표시 요소가 없습니다:", safeMessage);
-    return;
-  }
-
-  uniqueTargets.forEach((target) => {
-    target.textContent = safeMessage;
-  });
-
-  console.log("[Dot Forest]", safeMessage);
-}
-
-
-
-
 
 function isBlocked(x, z) {
   return gameState.obstacles.some((obstacle) => {
@@ -394,7 +324,9 @@ function updateLumiTransform(direction) {
     left: -Math.PI / 2,
     right: Math.PI / 2,
   };
-  lumiRoot.rotation.y = rotations[direction] ?? 0;
+  const targetYaw = rotations[direction] ?? 0;
+  lumiRoot.rotation.y = targetYaw;
+  gameState.player.yaw = targetYaw;  // 카메라 추적용
 }
 
 function playAction(name) {
@@ -448,11 +380,7 @@ function distance2D(a, b) {
 
 function updateScore() {
   const collected = gameState.items.filter((item) => item.collected).length;
-  if (dom.scoreText) dom.scoreText.textContent = `${collected} / ${gameState.items.length}`;
-  const itemCount = document.getElementById('itemCount');
-  if (itemCount) itemCount.textContent = String(collected).padStart(2, '0');
-  const sideItems = document.getElementById('sideItems');
-  if (sideItems) sideItems.textContent = String(collected).padStart(2, '0');
+  dom.scoreText.textContent = `${collected} / ${gameState.items.length}`;
 }
 
 function createDotPadMatrix() {
@@ -531,20 +459,12 @@ function drawShape(matrix, shape, originX, originY) {
 }
 
 function drawTactileFrame() {
-  if (!dom.tactileCanvas || !tactileCtx) return;
-
-  const rect = dom.tactileCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  dom.tactileCanvas.width = Math.floor(rect.width * dpr);
-  dom.tactileCanvas.height = Math.floor(rect.height * dpr);
-  tactileCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
   lastMatrix = createDotPadMatrix();
-  const cellW = rect.width / DOT_WIDTH;
-  const cellH = rect.height / DOT_HEIGHT;
+  const cellW = dom.tactileCanvas.width / DOT_WIDTH;
+  const cellH = dom.tactileCanvas.height / DOT_HEIGHT;
 
   tactileCtx.fillStyle = '#162217';
-  tactileCtx.fillRect(0, 0, rect.width, rect.height);
+  tactileCtx.fillRect(0, 0, dom.tactileCanvas.width, dom.tactileCanvas.height);
 
   for (let y = 0; y < DOT_HEIGHT; y++) {
     for (let x = 0; x < DOT_WIDTH; x++) {
@@ -557,22 +477,22 @@ function drawTactileFrame() {
     }
   }
 
-  drawTactileGrid(cellW, cellH, rect.width, rect.height);
+  drawTactileGrid(cellW, cellH);
 }
 
-function drawTactileGrid(cellW, cellH, width, height) {
+function drawTactileGrid(cellW, cellH) {
   tactileCtx.strokeStyle = 'rgba(255,255,255,0.055)';
   tactileCtx.lineWidth = 1;
   for (let x = 0; x <= DOT_WIDTH; x += 5) {
     tactileCtx.beginPath();
     tactileCtx.moveTo(x * cellW, 0);
-    tactileCtx.lineTo(x * cellW, height);
+    tactileCtx.lineTo(x * cellW, dom.tactileCanvas.height);
     tactileCtx.stroke();
   }
   for (let y = 0; y <= DOT_HEIGHT; y += 5) {
     tactileCtx.beginPath();
     tactileCtx.moveTo(0, y * cellH);
-    tactileCtx.lineTo(width, y * cellH);
+    tactileCtx.lineTo(dom.tactileCanvas.width, y * cellH);
     tactileCtx.stroke();
   }
 }
@@ -635,15 +555,17 @@ function startVoiceCommand() {
     return;
   }
   dom.voiceButton.classList.add('listening');
-  announce('음성 명령을 듣고 있습니다. 왼쪽, 오른쪽, 먹기 중 하나를 말해 주세요.');
+  announce('음성 명령을 듣고 있습니다. 앞으로, 뒤로, 왼쪽, 오른쪽, 먹기 중 하나를 말해 주세요.');
   speechRecognition.start();
 }
 
 function handleVoiceCommand(text) {
   const normalized = text.replaceAll(' ', '');
-  if (normalized.includes('왼')) return handleDotPadAction(ACTIONS.PREVIOUS);
-  if (normalized.includes('오른')) return handleDotPadAction(ACTIONS.NEXT);
-  if (normalized.includes('먹') || normalized.includes('수집')) return collectOrInteract();
+  if (normalized.includes('앞')) return handlePanningKeyInput('up');
+  if (normalized.includes('뒤')) return handlePanningKeyInput('down');
+  if (normalized.includes('왼')) return handlePanningKeyInput('left');
+  if (normalized.includes('오른')) return handlePanningKeyInput('right');
+  if (normalized.includes('먹') || normalized.includes('수집')) return collectNearbyDotling();
   announce(`인식한 명령은 ${text}입니다. 지원하는 명령이 아니에요.`, true);
 }
 
@@ -658,7 +580,16 @@ function resetGame() {
   announce('게임을 다시 시작했습니다. 루미가 숲 입구로 돌아왔어요.', true);
 }
 
-
+function announce(message, speak = false) {
+  dom.liveStatus.textContent = message;
+  if (speak && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.02;
+    window.speechSynthesis.speak(utterance);
+  }
+}
 
 function directionToKorean(direction) {
   return ({ up: '앞으로', down: '뒤로', left: '왼쪽으로', right: '오른쪽으로' })[direction] || '이동';
@@ -677,12 +608,25 @@ function animate() {
   });
 
   if (lumiRoot) {
-    const targetX = gameState.player.x;
-    const targetZ = gameState.player.z + 28;
-    camera.position.x += (targetX - camera.position.x) * 0.08;
-    camera.position.y += (24 - camera.position.y) * 0.08;
-    camera.position.z += (targetZ - camera.position.z) * 0.08;
-    camera.lookAt(gameState.player.x, 1.6, gameState.player.z);
+    // ── 3인칭 추적 카메라: 캐릭터 뒤에서 따라오며 방향 전환 시 회전 ──
+    const px = gameState.player.x;
+    const pz = gameState.player.z;
+    const yaw = gameState.player.yaw;
+    const camDist = 22;   // 캐릭터 뒤 거리
+    const camHeight = 16; // 카메라 높이
+
+    // 캐릭터가 바라보는 방향의 '뒤쪽'에 카메라 목표 위치 계산
+    const targetX = px + Math.sin(yaw) * camDist;
+    const targetZ = pz + Math.cos(yaw) * camDist;
+
+    // 부드러운 추적 (lerp)
+    const lerp = 0.06;
+    camera.position.x += (targetX - camera.position.x) * lerp;
+    camera.position.z += (targetZ - camera.position.z) * lerp;
+    camera.position.y += (camHeight - camera.position.y) * lerp;
+
+    // 캐릭터를 바라봄 (머리 높이)
+    camera.lookAt(px, 3, pz);
   }
 
   renderer.render(scene, camera);
@@ -699,7 +643,4 @@ function onResize() {
 }
 
 // 외부 SDK/하드웨어 이벤트 연결 예시:
-// window.handleDotPadPanningKey = (direction) => {
-//   if (direction === 'left') handleDotPadAction(ACTIONS.PREVIOUS);
-//   if (direction === 'right') handleDotPadAction(ACTIONS.NEXT);
-// };
+// window.handleDotPadPanningKey = handlePanningKeyInput;
